@@ -19,7 +19,7 @@ public class ProducerDAO {
      * @return The Producer object, or null if not found.
      */
     public Producer getProducerBySSN(String ssn) {
-        final String query = "SELECT * FROM Producers WHERE ssn = ?";
+        final String query = "SELECT * FROM musicians WHERE ssn = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
             
@@ -29,9 +29,8 @@ public class ProducerDAO {
             if (rs.next()) {
                 return new Producer(
                         rs.getString("ssn"),
-                        rs.getString("name"),
-                        rs.getString("phone"),
-                        rs.getString("address")
+                        rs.getString("name")
+
                 );
             }
         } catch (SQLException e) {
@@ -47,7 +46,7 @@ public class ProducerDAO {
      */
     public List<Producer> getAllProducers() {
         List<Producer> producers = new ArrayList<>();
-        final String query = "SELECT * FROM Producers";
+        final String query = "SELECT * FROM musicians";
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
@@ -55,9 +54,7 @@ public class ProducerDAO {
             while (rs.next()) {
                 producers.add(new Producer(
                         rs.getString("ssn"),
-                        rs.getString("name"),
-                        rs.getString("phone"),
-                        rs.getString("address")
+                        rs.getString("name")
                 ));
             }
         } catch (SQLException e) {
@@ -121,7 +118,7 @@ public class ProducerDAO {
      * @return true if the operation was successful.
      */
     public boolean deleteProducer(String ssn) {
-        final String query = "DELETE FROM Producers WHERE ssn = ?";
+        final String query = "DELETE FROM musicians WHERE ssn = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
             

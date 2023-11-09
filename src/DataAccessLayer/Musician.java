@@ -2,6 +2,8 @@ package DataAccessLayer;
 
 import java.io.Serializable;
 
+import BusinessLogicLayer.InstrumentService;
+
 /**
  * Represents a Musician entity as a plain old Java object (POJO).
  */
@@ -11,6 +13,9 @@ public class Musician implements Serializable {
     private String name;
     private String address;
     private String phoneNumber;
+    private String instr_id;
+    private String instr_name;
+    private InstrumentService instrumentService;
 
     /**
      * Constructs a new Musician with default values.
@@ -34,6 +39,21 @@ public class Musician implements Serializable {
         this.phoneNumber = phoneNumber;
     }
 
+    public Musician(String ssn, String name, String address, String phoneNumber,String instr_id) {
+        try {
+              this.instrumentService=new InstrumentService();
+            this.ssn = ssn;
+        this.name = name;
+        this.address = address;
+        this.phoneNumber = phoneNumber;
+        this.instr_id=instr_id;
+        // this.instr_name=this.instrumentService.findInstrumentById(this.instr_id).getName();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+  
+    }
+
     // Getters and setters for the musician properties
 
     public String getSsn() {
@@ -47,6 +67,16 @@ public class Musician implements Serializable {
     public String getName() {
         return name;
     }
+
+    public String getIntsrument_id() {
+        return this.instr_id;
+    }
+
+    public String getIntsrument_name() {
+        return this.instr_name;
+    }
+
+
 
     public void setName(String name) {
         this.name = name;
@@ -66,6 +96,19 @@ public class Musician implements Serializable {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+        public void setInstrId(String inst_id) {
+        this.instr_id = inst_id;
+    }
+
+        public void setInstrName(String instr_name) {
+        this.instr_name = instr_name;
+        this.instr_id=instrumentService.findInstrumentByName(instr_name).getName();
+    }
+
+        public void setInstrNameUsingInstrId(String instr_id) {
+        this.instr_name=this.instrumentService.findInstrumentById(instr_id).getName();
     }
 
     @Override

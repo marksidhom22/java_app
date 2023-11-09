@@ -6,12 +6,28 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.Date;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 import BusinessLogicLayer.AlbumService;
+import BusinessLogicLayer.ProducerService;
 import DataAccessLayer.Album;
+import DataAccessLayer.Producer;
+
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
+
+import org.jdatepicker.impl.JDatePanelImpl;
+import org.jdatepicker.impl.JDatePickerImpl;
+import org.jdatepicker.impl.UtilDateModel;
+import java.util.Properties;
+
+
 
 public class AlbumPanel extends JPanel {
     private JTable table;
@@ -22,9 +38,12 @@ public class AlbumPanel extends JPanel {
     private AlbumService albumService; // Add a field for the album service
     private JTextField searchField;
     private JButton searchButton;
+    private ProducerService producerService;
 
     public AlbumPanel() {
         albumService = new AlbumService(); // Initialize the service
+        producerService = new ProducerService();
+
         // Initialize the search field and button
         searchField = new JTextField(20);
         searchButton = new JButton("Search");
@@ -48,12 +67,7 @@ public class AlbumPanel extends JPanel {
         addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                try {
 					addAlbumDialog();
-				} catch (ParseException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
             }
         });
 
@@ -116,61 +130,205 @@ public class AlbumPanel extends JPanel {
 
     }
 
-    private void addAlbumDialog() throws ParseException {
-        // Implement the dialog to collect album information from the user
-        // Placeholder for album information
-        String albumId = JOptionPane.showInputDialog(this, "Enter Album ID:");
-        String title = JOptionPane.showInputDialog(this, "Enter Title:");
-        String copyrightDate = JOptionPane.showInputDialog(this, "Enter Copyright Date:");
-        String speed = JOptionPane.showInputDialog(this, "Enter Speed:");
-        String producerSSN = JOptionPane.showInputDialog(this, "Enter Producer SSN:");
+    
 
-        // Assuming validation of inputs is performed and all inputs are valid
-        Object[] rowData = new Object[]{albumId, title, copyrightDate, speed, producerSSN};
+  
+    private void addAlbumDialog() {
+        // Fields for album details
+        JTextField albumIdField = new JTextField();
+        JTextField titleField = new JTextField();
+    
+        // Properties for JDatePicker
+        Properties p = new Properties();
+        p.put("text.today", "Today");
+        p.put("text.month", "Month");
+        p.put("text.year", "Year");
+    
+        UtilDateModel model = new UtilDateModel();
+        JDatePanelImpl datePanel = new JDatePanelImpl(model, p); // Pass properties
+    
+        // Create a date picker with a DateLabelFormatter
+        JDatePickerImpl copyrightDatePicker = new JDatePickerImpl(datePanel, new DateLabelFormatter());
+    
+        JTextField speedField = new JTextField();
+    
+        List<Producer> producers = producerService.listAllProducers();
+        String[] producerNames = new String[producers.size()];
         
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        // Extract producer names from the list and store them in the producerNames array
+        for (int i = 0; i < producers.size(); i++) {
+            producerNames[i] = producers.get(i).getName();
+        }
 
-        try {
-            int id = Integer.parseInt(albumId.trim()); // Validate and convert albumId to int
-            java.util.Date copyrightDateObj = dateFormat.parse(copyrightDate.trim()); // Convert string to Date
-
-            // Construct an album object
-            Album album = new Album(id, producerSSN, copyrightDateObj, Integer.parseInt(speed.trim()), title);
-            albumService.addAlbum(album); // Add the album to the database through the service
-            
-            // Add the album to the table model only if the database addition is successful
-            addAlbum(rowData);
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(null, "Invalid input for numerical fields.");
-        }    }
-
-    private void editAlbumDialog(int rowIndex) throws ParseException {
-        // Implement the dialog to edit album information
-        // Assuming that the current data is fetched and filled into the dialog inputs
-        String albumId = (String) tableModel.getValueAt(rowIndex, 0); // For example
-        // Fetch the rest of the data similarly...
+        // Create a list of producer names along with their SSNs
+        List<String> producerInfoList = new ArrayList<>();
+        for (Producer producer : producers) {
+            producerInfoList.add(producer.getName() + " (" + producer.getSsn() + ")");
+        }
         
-        // Placeholder for updated information, which should be collected from dialog inputs
-        String newTitle = JOptionPane.showInputDialog(this, "Edit Title:", tableModel.getValueAt(rowIndex, 1));
-        String newCopyrightDate = JOptionPane.showInputDialog(this, "Edit Copyright Date:", tableModel.getValueAt(rowIndex, 2));
-        String newSpeed = JOptionPane.showInputDialog(this, "Edit Speed:", tableModel.getValueAt(rowIndex, 3));
-        String newProducerSSN = JOptionPane.showInputDialog(this, "Edit Producer SSN:", tableModel.getValueAt(rowIndex, 4));
+        JComboBox<String> producerComboBox = new JComboBox<>(producerInfoList.toArray(new String[0]));
+    
+        // Create an array of messages to display in the dialog
+        Object[] message = {
+            "Album ID:", albumIdField,
+            "Title:", titleField,
+            "Copyright Date:", copyrightDatePicker,
+            "Speed:", speedField,
+            "Producer Name:", producerComboBox  // Use JComboBox for producer name selection
+        };
+    
+        // Show the dialog with input fields
+        int option = JOptionPane.showConfirmDialog(null, message, "Add New Album", JOptionPane.OK_CANCEL_OPTION);
+        if (option == JOptionPane.OK_OPTION) {
+            try {
+                // Validate and parse the input data
+                int id = Integer.parseInt(albumIdField.getText().trim());
+                String title = titleField.getText().trim();
 
-        Object[] rowData = new Object[]{albumId, newTitle, newCopyrightDate, newSpeed, newProducerSSN};
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                java.util.Date selectedUtilDate = (java.util.Date) copyrightDatePicker.getModel().getValue();
+                java.sql.Date selectedSqlDate = new java.sql.Date(selectedUtilDate.getTime());
 
-        try {
-            int id = Integer.parseInt(albumId.trim()); // Validate and convert albumId to int
-            java.util.Date copyrightDateObj = dateFormat.parse(newCopyrightDate.trim()); // Convert string to Date 
-            Album album = new Album(id, newTitle, copyrightDateObj, Integer.parseInt(newSpeed.trim()), newProducerSSN);
-            albumService.updateAlbum(album); // Update the album in the database
-            
-            // Update the table model
-            editAlbum(rowIndex, rowData);
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(null, "Invalid input for numerical fields.");
+                
+                java.sql.Date copyrightDate = new java.sql.Date(selectedSqlDate.getTime());
+                int speed = Integer.parseInt(speedField.getText().trim());
+    
+                // You need to convert producer name to SSN or adapt your Album class to use name instead
+                // This is just an example assuming you have a method to get SSN by name
+                String selectedProducerInfo = (String) producerComboBox.getSelectedItem();
+                // Split the selected producer info to separate name and SSN
+                String[] parts = selectedProducerInfo.split(" ");
+                String selectedProducerName = String.join(" " ,parts  ); // Extract the producer name
+                String selectedProducerSSN = parts[parts.length-1].substring(1, parts[parts.length-1].length() - 1); // Extract the SSN
+                selectedProducerName= selectedProducerName.replace(selectedProducerSSN, "");
+
+        
+                // Create an album object with the input data
+                Album album = new Album(id, selectedProducerSSN, copyrightDate, speed,  title);
+                // Call the service layer to add the album
+                albumService.addAlbum(album);
+    
+                // Add the album to the table model
+                Object[] rowData = {id, title, copyrightDate, speed, selectedProducerName};
+                tableModel.addRow(rowData);
+            } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Invalid input format.");
+            }
         }
     }
+    
+
+    /**
+     * Custom formatter to format and parse dates in the date picker.
+     */
+    public class DateLabelFormatter extends JFormattedTextField.AbstractFormatter {
+        private final String datePattern = "yyyy-MM-dd";
+        private final SimpleDateFormat dateFormatter = new SimpleDateFormat(datePattern);
+
+        @Override
+        public Object stringToValue(String text) throws ParseException {
+            return dateFormatter.parseObject(text);
+        }
+
+        @Override
+        public String valueToString(Object value) throws ParseException {
+            if (value != null) {
+                Calendar cal = (Calendar) value;
+                return dateFormatter.format(cal.getTime());
+            }
+            return "";
+        }
+    }
+
+
+    
+
+    
+    
+    private void editAlbumDialog(int rowIndex) throws ParseException {
+        // Properties for JDatePicker
+        Properties p = new Properties();
+        p.put("text.today", "Today");
+        p.put("text.month", "Month");
+        p.put("text.year", "Year");
+        UtilDateModel model = new UtilDateModel();
+        JDatePanelImpl datePanel = new JDatePanelImpl(model, p); // Pass properties
+    
+        // Create a date picker with a DateLabelFormatter
+        JDatePickerImpl copyrightDatePicker = new JDatePickerImpl(datePanel, new DateLabelFormatter());
+    
+        List<Producer> producers = producerService.listAllProducers();
+        String[] producerNames = new String[producers.size()];
+    
+        // Extract producer names from the list and store them in the producerNames array
+        for (int i = 0; i < producers.size(); i++) {
+            producerNames[i] = producers.get(i).getName();
+        }
+    
+        // Create a list of producer names along with their SSNs
+        List<String> producerInfoList = new ArrayList<>();
+        for (Producer producer : producers) {
+            producerInfoList.add(producer.getName() + " (" + producer.getSsn() + ")");
+        }
+    
+        JComboBox<String> producerComboBox = new JComboBox<>(producerInfoList.toArray(new String[0]));
+    
+        // Get the current data from the table model
+        int albumId = (Integer) tableModel.getValueAt(rowIndex, 0); // Assuming albumId is an integer
+        String title = (String) tableModel.getValueAt(rowIndex, 1);
+        Date copyrightDate = (Date) tableModel.getValueAt(rowIndex, 2); // Assuming copyrightDate is stored as java.sql.Date
+        int speed = (Integer) tableModel.getValueAt(rowIndex, 3); // Assuming speed is an integer
+        String producer_name = (String) tableModel.getValueAt(rowIndex, 4);
+    
+        // Show dialog to edit the album details
+        JTextField titleField = new JTextField(title);
+        JTextField copyrightField = new JTextField(copyrightDate.toString());
+        JTextField speedField = new JTextField(Integer.toString(speed));
+    
+        Object[] message = {
+            "Title:", titleField,
+            "Copyright Date (YYYY-MM-DD):", copyrightField,
+            "Speed:", speedField,
+            "Producer Name:", producerComboBox
+        };
+    
+        int option = JOptionPane.showConfirmDialog(null, message, "Edit Album", JOptionPane.OK_CANCEL_OPTION);
+        if (option == JOptionPane.OK_OPTION) {
+    
+            try {
+                // Validate and parse the input data
+                String title_new = titleField.getText().trim();
+    
+                DateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
+                java.util.Date copyrightDate_new = format.parse(copyrightField.getText().trim());
+            
+                int speed_new = Integer.parseInt(speedField.getText().trim());
+    
+                // Get the selected producer from the combo box
+                String selectedProducerInfo = (String) producerComboBox.getSelectedItem();
+                // Split the selected producer info to separate name and SSN
+                String[] parts = selectedProducerInfo.split(" ");
+                String selectedProducerName = parts[0]; // Extract the producer name
+                String selectedProducerSSN = parts[parts.length - 1].substring(1, parts[parts.length - 1].length() - 1); // Extract the SSN
+    
+                // Create an album object with the input data
+                Album album = new Album(albumId, selectedProducerSSN, copyrightDate_new, speed_new, title_new);
+                // Call the service layer to update the album
+                albumService.updateAlbum(album);
+    
+                // Update the table model if the update is successful
+                tableModel.setValueAt(albumId, rowIndex, 0);
+                tableModel.setValueAt(album.getTitle(), rowIndex, 1);
+                tableModel.setValueAt(album.getCopyrightDate(), rowIndex, 2);
+                tableModel.setValueAt(album.getSpeed(), rowIndex, 3);
+                tableModel.setValueAt(producerService.findProducerBySSN(album.getSsn()).getName(), rowIndex, 4);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "Invalid input format.");
+            }
+        }
+    }
+    
+
+
 
     // Methods for updating the table data
     public void addAlbum(Object[] rowData) {
@@ -199,6 +357,8 @@ public class AlbumPanel extends JPanel {
             tableModel.removeRow(rowIndex); // Remove the album from the table model
         }  
     }
+
+
         private void loadAlbums() {
             List<Album> albums = albumService.listAllAlbums();
             for (Album album : albums) {
@@ -207,7 +367,7 @@ public class AlbumPanel extends JPanel {
                     album.getTitle(),
                     album.getCopyrightDate(),
                     album.getSpeed(),
-                    album.getSsn()
+                    producerService.findProducerBySSN( album.getSsn()).getName()
                 };
                 tableModel.addRow(rowData);
             }          

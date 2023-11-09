@@ -14,8 +14,8 @@ public class ProducerService implements IProducerService {
     /**
      * Constructor that injects a ProducerDAO object.
      */
-    public ProducerService(ProducerDAO producerDao) {
-        this.producerDao = producerDao;
+    public ProducerService() {
+    	producerDao= new ProducerDAO();
     }
 
     @Override

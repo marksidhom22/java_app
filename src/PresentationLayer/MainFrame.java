@@ -12,6 +12,7 @@ public class MainFrame extends JFrame {
     private InstrumentPanel instrumentPanel;
     private AlbumPanel albumPanel;
     private SongPanel songPanel;
+    private MusicDataPanel musicDataPanel;
 
     // Menu items
     private JMenuBar menuBar;
@@ -20,6 +21,7 @@ public class MainFrame extends JFrame {
     private JMenuItem instrumentsItem;
     private JMenuItem albumsItem;
     private JMenuItem songsItem;
+    private JMenuItem musicDaItem;
 
     public MainFrame(String title) {
         super(title);
@@ -34,6 +36,7 @@ public class MainFrame extends JFrame {
         instrumentPanel = new InstrumentPanel();
         albumPanel = new AlbumPanel();
         songPanel = new SongPanel();
+        musicDataPanel=new MusicDataPanel();
 
         // Setup the menu bar
         menuBar = new JMenuBar();
@@ -42,7 +45,19 @@ public class MainFrame extends JFrame {
         instrumentsItem = new JMenuItem("Instruments");
         albumsItem = new JMenuItem("Albums");
         songsItem = new JMenuItem("Songs");
+        musicDaItem = new JMenuItem("Music Data");
 
+        
+        // Add action listeners for menu items
+        musicDaItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setContentPane(musicDataPanel);
+                validate();
+            }
+        });
+        
+        
         // Add action listeners for menu items
         musiciansItem.addActionListener(new ActionListener() {
             @Override
@@ -81,6 +96,7 @@ public class MainFrame extends JFrame {
         menu.add(instrumentsItem);
         menu.add(albumsItem);
         menu.add(songsItem);
+        menu.add(musicDaItem);
 
         // Add menu to menubar
         menuBar.add(menu);

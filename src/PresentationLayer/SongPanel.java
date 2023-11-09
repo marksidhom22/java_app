@@ -6,9 +6,14 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
+import BusinessLogicLayer.AlbumService;
 import BusinessLogicLayer.SongService;
 import DataAccessLayer.Album;
+import DataAccessLayer.Producer;
 import DataAccessLayer.Song;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class SongPanel extends JPanel {
@@ -20,10 +25,11 @@ public class SongPanel extends JPanel {
     private SongService songService; // Service for handling business logic
     private JTextField searchField;
     private JButton searchButton;
-
+    private AlbumService albumService;
     public SongPanel() {
 
         this.songService = new SongService(null);
+        this.albumService=new AlbumService();
         searchField = new JTextField(20);
         searchButton = new JButton("Search");
 
@@ -109,13 +115,32 @@ public class SongPanel extends JPanel {
         JTextField idField = new JTextField();
         JTextField authorField = new JTextField();
         JTextField titleField = new JTextField();
-        JTextField albumIdField = new JTextField();
+        // JTextField albumIdField = new JTextField();
+
+
+        List<Album> albums = albumService.listAllAlbums();
+        String[] albnames = new String[albums.size()];
+        
+        // Extract producer names from the list and store them in the producerNames array
+        for (int i = 0; i < albums.size(); i++) {
+            albnames[i] = albums.get(i).getTitle();
+        }
+
+
+        // Create a list of producer names along with their SSNs
+        List<String> albInfolist = new ArrayList<>();
+        for (Album album : albums) {
+            albInfolist.add(album.getTitle() + " (" + album.getAlbumIdentifier() + ")");
+        }
+        
+        JComboBox<String> albumComboBox = new JComboBox<>(albInfolist.toArray(new String[0]));
+
 
         Object[] message = {
             "Song ID:", idField,
             "Author:", authorField,
             "Title:", titleField,
-            "Album ID:", albumIdField
+            "Album name:", albumComboBox
         };
 
         int option = JOptionPane.showConfirmDialog(null, message, "Add New Song", JOptionPane.OK_CANCEL_OPTION);
@@ -124,13 +149,28 @@ public class SongPanel extends JPanel {
                 int id = Integer.parseInt(idField.getText().trim()); // Assuming the ID is an integer
                 String author = authorField.getText().trim();
                 String title = titleField.getText().trim();
-                int albumId = Integer.parseInt(albumIdField.getText().trim()); // Assuming the Album ID is an integer
+                // int albumId = Integer.parseInt(albumIdField.getText().trim()); // Assuming the Album ID is an integer
                 
+
+                // You need to convert producer name to SSN or adapt your Album class to use name instead
+                // This is just an example assuming you have a method to get SSN by name
+                String selectedAlbumInfo = (String) albumComboBox.getSelectedItem();
+                // Split the selected producer info to separate name and SSN
+                String[] parts = selectedAlbumInfo.split(" ");
+                String selectedAlbumName = String.join(" " ,parts  ); // Extract the producer name
+                String selectedAlbumID = parts[parts.length-1].substring(1, parts[parts.length-1].length() - 1); // Extract the SSN
+                selectedAlbumName= selectedAlbumName.replace(selectedAlbumID, "");
+
+
+
+
+
+
                 // Assuming the Song constructor takes id, author, title, albumId
-                Song newSong = new Song(id, author, title, albumId);
+                Song newSong = new Song(id, author, title, Integer.parseInt(selectedAlbumID));
                 
                 // Add to the table in the GUI
-                Object[] rowData = {id, author, title, albumId};
+                Object[] rowData = {id, author, title, selectedAlbumID};
                 addSong(rowData);
                 
                 // Interact with business logic to add the song

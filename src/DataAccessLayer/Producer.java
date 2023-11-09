@@ -30,6 +30,10 @@ public class Producer extends Musician {
     public Producer(String ssn, String name, String address, String phone) {
         super(ssn, name, address, phone); // Call the parent (Musician) constructor
     }
+    
+    public Producer(String ssn, String name) {
+        super(ssn, name, null, null); // Call the parent (Musician) constructor
+    }
 
     /**
      * Gets the list of albums produced by this producer.

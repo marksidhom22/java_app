@@ -17,14 +17,14 @@ public class MusicianService implements IMusicianService {
     /**
      * Constructor injecting the MusicianDAO dependency.
      */
-    public MusicianService(MusicianDAO musicianDao) {
-        this.musicianDao = musicianDao;
+    public MusicianService() {
+        this.musicianDao = new MusicianDAO();
     }
 
     @Override
     public Musician findMusicianBySSN(String ssn) {
         // Logic to find a musician by SSN using the MusicianDAO
-        return musicianDao.getMusicianBySSN(ssn);
+        return musicianDao.getMusicianById(ssn);
     }
 
     @Override
@@ -37,7 +37,7 @@ public class MusicianService implements IMusicianService {
     public void updateMusician(Musician musician) {
         // Logic to save (insert or update) a musician's details using the MusicianDAO
         if(musician != null) {
-            if(musicianDao.getMusicianBySSN(musician.getSsn()) != null) {
+            if(musicianDao.getMusicianById(musician.getSsn()) != null) {
                 musicianDao.updateMusician(musician);
             } else {
                 musicianDao.addMusician(musician);
@@ -54,7 +54,7 @@ public class MusicianService implements IMusicianService {
     @Override
     public void addMusician(Musician musician) {
         // Logic to add a new musician using the MusicianDAO
-        if (musician != null && musicianDao.getMusicianBySSN(musician.getSsn()) == null) {
+        if (musician != null && musicianDao.getMusicianById(musician.getSsn()) == null) {
             musicianDao.addMusician(musician);
         }
     }
@@ -70,6 +70,11 @@ public class MusicianService implements IMusicianService {
                                     // || musician.getInstrument().toLowerCase().contains(searchQuery.toLowerCase())
                                     )
                            .collect(Collectors.toList());
+    }
+
+    public void deleteMusicianById(String id) {
+        // Implement the logic to delete a musician by ID, using the appropriate DAO method
+        musicianDao.deleteMusician(id);
     }
 
     // Additional methods and business logic can be added below

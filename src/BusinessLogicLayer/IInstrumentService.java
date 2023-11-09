@@ -27,22 +27,25 @@ public interface IInstrumentService {
      * Adds a new instrument to the database.
      *
      * @param instrument the Instrument object to be added
+     * @return 
      */
-    void addInstrument(Instrument instrument);
+    boolean addInstrument(Instrument instrument);
 
     /**
      * Updates an existing instrument's information in the database.
      *
      * @param instrument the Instrument object to be updated
+     * @return 
      */
-    void updateInstrument(Instrument instrument);
+    boolean updateInstrument(Instrument instrument);
 
     /**
      * Deletes an instrument from the database using its ID.
      *
      * @param instrId the unique ID of the instrument to be deleted
+     * @return 
      */
-    void deleteInstrumentById(String instrId);
+    boolean deleteInstrumentById(String instrId);
 
     // Other instrument-related business operations can be defined here.
 }

@@ -77,20 +77,38 @@ public class SongDAO {
      * @return true if the operation was successful.
      */
     public boolean addSong(Song song) {
-        final String query = "INSERT INTO Songs_Appears (songId, title, author, albumIdentifier) VALUES (?, ?, ?, ?)";
+    	 int affectedRows=0;
+        final String query = "INSERT INTO songs (songId, title, author) VALUES (?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
             
             pstmt.setInt(1, song.getSongId());
             pstmt.setString(2, song.getTitle());
             pstmt.setString(3, song.getAuthor());
-            pstmt.setInt(4, song.getAlbumIdentifier());
 
-            int affectedRows = pstmt.executeUpdate();
-            return affectedRows > 0;
+            affectedRows = pstmt.executeUpdate();
+           
+            
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        
+        
+        final String query2 = "INSERT INTO Songs_Appears (songId, albumIdentifier) VALUES (?, ?)";
+        try (Connection conn2 = DatabaseConnection.getConnection();
+             PreparedStatement pstmt2 = conn2.prepareStatement(query2)) {
+            
+            pstmt2.setInt(1, song.getSongId());
+            pstmt2.setInt(2, song.getAlbumIdentifier());
+
+            int affectedRows2 = pstmt2.executeUpdate();
+            return affectedRows+ affectedRows2> 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+            
+        
         return false;
     }
 

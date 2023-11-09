@@ -3,14 +3,16 @@ package PresentationLayer;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
-import BusinessLogicLayer.AlbumService;
+import BusinessLogicLayer.InstrumentService;
 import BusinessLogicLayer.MusicianService;
 import DataAccessLayer.Musician;
+import DataAccessLayer.MusicianDAO;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
+import DataAccessLayer.*;
 
 public class MusicianPanel extends JPanel {
     private JTable table;
@@ -20,15 +22,19 @@ public class MusicianPanel extends JPanel {
     private DefaultTableModel tableModel;
     private JTextField searchField;
     private JButton searchButton;
-    private MusicianService musicianService; // Add a field for the album service
+    private MusicianService musicianService;
+    private InstrumentService instrumentservice;
 
-    public MusicianPanel() {
+
+    public MusicianPanel() { 
+        musicianService = new MusicianService();
+        instrumentservice = new InstrumentService();
         setLayout(new BorderLayout());
         searchField = new JTextField(20);
         searchButton = new JButton("Search");
-        musicianService = new MusicianService(null);
+
         // Table model for musician details
-        tableModel = new DefaultTableModel(new Object[]{"Musician ID", "Name", "Instrument"}, 0);
+        tableModel = new DefaultTableModel(new Object[]{"SSN", "Name", "Instrument Name", "Address", "Phone Number"}, 0);
         table = new JTable(tableModel);
 
         // Scroll pane for the table
@@ -41,7 +47,7 @@ public class MusicianPanel extends JPanel {
         editButton = new JButton("Edit");
         deleteButton = new JButton("Delete");
 
-        // Add button functionalities
+        // Add action listeners for the buttons
         addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -66,13 +72,19 @@ public class MusicianPanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 int selectedRow = table.getSelectedRow();
                 if (selectedRow >= 0) {
-                    deleteMusician1(selectedRow);
+                    deleteMusician(selectedRow);
                 } else {
                     JOptionPane.showMessageDialog(null, "Please select a musician to delete.");
                 }
             }
         });
-        // Add action listener to the search button
+
+        // Search panel for the search field and button
+        JPanel searchPanel = new JPanel();
+        searchPanel.add(new JLabel("Search:"));
+        searchPanel.add(searchField);
+        searchPanel.add(searchButton);
+
         searchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -80,17 +92,9 @@ public class MusicianPanel extends JPanel {
                 searchMusicians(searchQuery);
             }
         });
-        // Search panel for the search field and button
-        JPanel searchPanel = new JPanel();
-        searchPanel.add(new JLabel("Search:"));
-        searchPanel.add(searchField);
-        searchPanel.add(searchButton);
 
         // Add the search panel to the main panel, for example, at the top
         add(searchPanel, BorderLayout.NORTH);
-
-
-
 
         // Add buttons to the button panel
         buttonPanel.add(addButton);
@@ -99,97 +103,121 @@ public class MusicianPanel extends JPanel {
 
         // Add the button panel to the south of this panel
         add(buttonPanel, BorderLayout.SOUTH);
+
+        loadMusicians();
     }
 
-    private void addMusicianDialog() {
-        JTextField idField = new JTextField();
-        JTextField nameField = new JTextField();
-        JTextField instrumentField = new JTextField();
-
-        Object[] message = {
-            "Musician ID:", idField,
-            "Name:", nameField,
-            "Instrument:", instrumentField
-        };
-
-        int option = JOptionPane.showConfirmDialog(null, message, "Add New Musician", JOptionPane.OK_CANCEL_OPTION);
-        if (option == JOptionPane.OK_OPTION) {
-            String id = idField.getText();
-            String name = nameField.getText();
-            String instrument = instrumentField.getText();
-            Object[] rowData = {id, name, instrument};
-            addMusician(rowData);
-        }
-    }
-
-    private void editMusicianDialog(int rowIndex) {
-        String id = (String) tableModel.getValueAt(rowIndex, 0);
-        String name = (String) tableModel.getValueAt(rowIndex, 1);
-        String instrument = (String) tableModel.getValueAt(rowIndex, 2);
-
-        JTextField idField = new JTextField(id);
-        JTextField nameField = new JTextField(name);
-        JTextField instrumentField = new JTextField(instrument);
-
-        Object[] message = {
-            "Musician ID:", idField,
-            "Name:", nameField,
-            "Instrument:", instrumentField
-        };
-
-        int option = JOptionPane.showConfirmDialog(null, message, "Edit Musician", JOptionPane.OK_CANCEL_OPTION);
-        if (option == JOptionPane.OK_OPTION) {
-            id = idField.getText();
-            name = nameField.getText();
-            instrument = instrumentField.getText();
-            Object[] rowData = {id, name, instrument};
-            editMusician(rowIndex, rowData);
-        }
-    }
-
-    private void deleteMusician1(int rowIndex) {
-        int confirm = JOptionPane.showConfirmDialog(this, 
-                        "Are you sure you want to delete this musician?", 
-                        "Delete Musician", 
-                        JOptionPane.YES_NO_OPTION);
-        if (confirm == JOptionPane.YES_OPTION) {
-            tableModel.removeRow(rowIndex);
-        }
-    }
-
-    public void addMusician(Object[] rowData) {
-        tableModel.addRow(rowData);
-    }
-
-    public void editMusician(int rowIndex, Object[] rowData) {
-        for (int i = 0; i < rowData.length; i++) {
-            tableModel.setValueAt(rowData[i], rowIndex, i);
-        }
-    }
-
-    public void deleteMusician(int rowIndex) {
-        tableModel.removeRow(rowIndex);
-    }
-
-        private void searchMusicians(String searchQuery) {
-        // Clear the current table model
-        tableModel.setRowCount(0);
-
-        // Fetch the search results from the MusicianService
-        List<Musician> searchResults= musicianService.searchMusicians(searchQuery);
-
-        // Populate the table with the search results
-        for (Musician musician : searchResults) {
+    private void loadMusicians() {
+        List<Musician> musicians = musicianService.listAllMusicians();
+        tableModel.setRowCount(0); // Clear the table first
+        for (Musician musician : musicians) {
             Object[] rowData = {
                 musician.getSsn(),
                 musician.getName(),
-//                musician.getInstrument()
+                musician.getIntsrument_name(),
+                musician.getAddress(),
+                musician.getPhoneNumber()
             };
             tableModel.addRow(rowData);
         }
     }
 
-    // ... rest of the MusicianPanel code
+
+
+    private void addMusicianDialog() {
+        JComboBox<String> instrumentComboBox = new JComboBox<>();
+        List<Instrument> instruments = instrumentservice.listAllInstruments(); // Use service to get instruments
+        for (Instrument instrument : instruments) {
+            instrumentComboBox.addItem(instrument.getName()); // Assuming Instrument has a getName() method
+        }
+        // Fields for musician details
+        JTextField ssnField = new JTextField();
+        JTextField nameField = new JTextField();
+        JTextField addressField = new JTextField();
+        JTextField phoneNumberField = new JTextField();
+
+        Object[] message = {
+            "SSN:", ssnField,
+            "Name:", nameField,
+            "Instrument:", instrumentComboBox, // Use JComboBox instead of JTextField
+            "Address:", addressField,
+            "Phone Number:", phoneNumberField
+        };
+
+        int option = JOptionPane.showConfirmDialog(null, message, "Add New Musician", JOptionPane.OK_CANCEL_OPTION);
+        if (option == JOptionPane.OK_OPTION) {
+            String selectedInstrumentName = (String) instrumentComboBox.getSelectedItem();
+
+            // Create a new musician object with the input data
+            Musician newMusician = new Musician(
+                    ssnField.getText(),
+                    nameField.getText(),
+                    addressField.getText(),
+                    phoneNumberField.getText(),
+                    selectedInstrumentName
+            );
+            musicianService.addMusician(newMusician);
+            loadMusicians(); // Reload the musicians after addition
+        }
+    }
+
+    private void editMusicianDialog(int rowIndex) {
+        // Get the current data
+        String ssn = (String) tableModel.getValueAt(rowIndex, 0);
+        Musician musician = musicianService.findMusicianBySSN(ssn);
+        JTextField nameField = new JTextField(musician.getName());
+        JTextField instrumentField = new JTextField(musician.getIntsrument_name());
+        JTextField addressField = new JTextField(musician.getAddress());
+        JTextField phoneNumberField = new JTextField(musician.getPhoneNumber());
+
+        Object[] message = {
+            "SSN (cannot be changed):", ssn,
+            "Name:", nameField,
+            "Instrument Name:", instrumentField,
+            "Address:", addressField,
+            "Phone Number:", phoneNumberField
+        };
+
+        int option = JOptionPane.showConfirmDialog(null, message, "Edit Musician", JOptionPane.OK_CANCEL_OPTION);
+        if (option == JOptionPane.OK_OPTION) {
+            // Update the musician object with the new data
+            musician.setName(nameField.getText());
+            musician.setInstrName(instrumentField.getText());
+            musician.setAddress(addressField.getText());
+            musician.setPhoneNumber(phoneNumberField.getText());
+            musicianService.updateMusician(musician);
+            loadMusicians(); // Reload the musicians after update
+        }
+    }
+
+    private void deleteMusician(int rowIndex) {
+        String ssn = (String) tableModel.getValueAt(rowIndex, 0);
+        int confirmation = JOptionPane.showConfirmDialog(
+                null,
+                "Are you sure you want to delete this musician?",
+                "Delete Musician",
+                JOptionPane.YES_NO_OPTION);
+
+        if (confirmation == JOptionPane.YES_OPTION) {
+            musicianService.deleteMusicianBySSN(ssn);
+            loadMusicians(); // Reload the musicians after deletion
+        }
+    }
+
+    private void searchMusicians(String query) {
+        List<Musician> searchResults = musicianService.searchMusicians(query);
+        tableModel.setRowCount(0); // Clear the table first
+        for (Musician musician : searchResults) {
+            Object[] rowData = {
+                musician.getSsn(),
+                musician.getName(),
+                musician.getIntsrument_name(),
+                musician.getAddress(),
+                musician.getPhoneNumber()
+            };
+            tableModel.addRow(rowData);
+        }
+    }
+
+    // Other methods and class members...
 }
-
-

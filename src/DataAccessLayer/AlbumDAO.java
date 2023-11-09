@@ -29,10 +29,11 @@ public class AlbumDAO {
             if (rs.next()) {
                 return new Album(
                         rs.getInt("albumIdentifier"),
-                        rs.getString("title"),
+                        rs.getString("ssn") ,
                         rs.getDate("copyrightDate"),
                         rs.getInt("speed"),
-                        rs.getString("ssn") // Assuming 'ssn' is the producer's SSN
+                        rs.getString("title")
+
                 );
             }
         } catch (SQLException e) {
@@ -56,10 +57,11 @@ public class AlbumDAO {
             while (rs.next()) {
                 albums.add(new Album(
                         rs.getInt("albumIdentifier"),
-                        rs.getString("title"),
+                        rs.getString("ssn") ,
                         rs.getDate("copyrightDate"),
                         rs.getInt("speed"),
-                        rs.getString("ssn") // Assuming 'ssn' is the producer's SSN
+                        rs.getString("title")
+
                 ));
             }
         } catch (SQLException e) {

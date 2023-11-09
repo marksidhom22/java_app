@@ -30,7 +30,7 @@ public class InstrumentDAO {
                 return new Instrument(
                         rs.getString("instrId"),
                         rs.getString("dname"),
-                        rs.getString("key")
+                        rs.getString("instrument_key")
                 );
             }
         } catch (SQLException e) {
@@ -38,6 +38,29 @@ public class InstrumentDAO {
         }
         return null;
     }
+
+    public Instrument getInstrumentByName(String instrName) {
+        final String query = "SELECT * FROM Instruments WHERE dname = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            
+            pstmt.setString(1, instrName);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return new Instrument(
+                        rs.getString("instrId"),
+                        rs.getString("dname"),
+                        rs.getString("instrument_key")
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
 
     /**
      * Retrieves all instruments from the database.
@@ -55,7 +78,7 @@ public class InstrumentDAO {
                 instruments.add(new Instrument(
                         rs.getString("instrId"),
                         rs.getString("dname"),
-                        rs.getString("key")
+                        rs.getString("instrument_key")
                 ));
             }
         } catch (SQLException e) {
@@ -71,7 +94,7 @@ public class InstrumentDAO {
      * @return true if the operation was successful.
      */
     public boolean addInstrument(Instrument instrument) {
-        final String query = "INSERT INTO Instruments (instrId, dname, key) VALUES (?, ?, ?)";
+        final String query = "INSERT INTO Instruments (instrId, dname, instrument_key) VALUES (?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
             
@@ -94,7 +117,7 @@ public class InstrumentDAO {
      * @return true if the operation was successful.
      */
     public boolean updateInstrument(Instrument instrument) {
-        final String query = "UPDATE Instruments SET dname = ?, key = ? WHERE instrId = ?";
+        final String query = "UPDATE Instruments SET dname = ?, instrument_key = ? WHERE instrId = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
             
