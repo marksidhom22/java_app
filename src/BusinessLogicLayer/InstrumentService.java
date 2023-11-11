@@ -24,11 +24,14 @@ public class InstrumentService implements IInstrumentService {
         // Implement the logic to find an instrument by its ID using InstrumentDAO
         return instrumentDao.getInstrumentById(instrId);
 
+
     }
+
+    
 
     public Instrument findInstrumentByName(String instrName) {
         // Implement the logic to find an instrument by its ID using InstrumentDAO
-        return instrumentDao.getInstrumentById(instrName);
+        return instrumentDao.getInstrumentByName(instrName);
 
     }
 
@@ -56,8 +59,7 @@ public class InstrumentService implements IInstrumentService {
     @Override
     public boolean deleteInstrumentById(String instrId) {
         // Implement the logic to delete an instrument by its ID using InstrumentDAO
-        instrumentDao.deleteInstrument(instrId);
-        return true;
+        return instrumentDao.deleteInstrument(instrId);
     }
 
     public List<Instrument> SearchInstruments(String searchQuery) {

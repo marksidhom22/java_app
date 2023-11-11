@@ -154,9 +154,19 @@ public class InstrumentPanel extends JPanel {
                         "Delete Instrument", 
                         JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
-            tableModel.removeRow(rowIndex);
+            // Retrieve the ID of the instrument to delete from the table model
+            String id = (String) tableModel.getValueAt(rowIndex, 0);
+            // Delete the instrument via the service layer
+            boolean success = instrumentService.deleteInstrumentById(id);
+            // If the deletion was successful, remove it from the table model
+            if (success) {
+                tableModel.removeRow(rowIndex);
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to delete the instrument. Some musicians are currently associated with this instrument.", "Deletion Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
+    
 
     public void addInstrument(Object[] rowData) {
         // Create an Instrument object from the rowData
