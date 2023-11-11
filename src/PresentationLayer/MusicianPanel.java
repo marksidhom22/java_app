@@ -5,8 +5,6 @@ import javax.swing.table.DefaultTableModel;
 
 import BusinessLogicLayer.InstrumentService;
 import BusinessLogicLayer.MusicianService;
-import DataAccessLayer.Musician;
-import DataAccessLayer.MusicianDAO;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -154,7 +152,7 @@ public class MusicianPanel extends JPanel {
                     nameField.getText(),
                     addressField.getText(),
                     phoneNumberField.getText(),
-                    selectedInstrumentName
+                    instrumentservice.findInstrumentByName(selectedInstrumentName).getInstrId()
             );
             musicianService.addMusician(newMusician);
             loadMusicians(); // Reload the musicians after addition

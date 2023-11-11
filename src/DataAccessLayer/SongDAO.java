@@ -48,8 +48,8 @@ public class SongDAO {
     public List<Song> getAllSongs() {
         List<Song> songs = new ArrayList<>();
         final String query = "SELECT Songs_Appears.songId ,"
-        		+ "Songs_Appears.albumIdentifier ,songs.author ,"
-        		+ "songs.title  FROM Songs_Appears join songs "
+        		+ "songs.author ,songs.title,Songs_Appears.albumIdentifier"
+        		+ "  FROM Songs_Appears join songs "
         		+ "on Songs_Appears.songId =songs.songId ;\r\n"
         		+ "";
         try (Connection conn = DatabaseConnection.getConnection();
@@ -59,8 +59,8 @@ public class SongDAO {
             while (rs.next()) {
                 songs.add(new Song(
                         rs.getInt("songId"),
-                        rs.getString("title"),
                         rs.getString("author"),
+                        rs.getString("title"),
                         rs.getInt("albumIdentifier")
                 ));
             }
@@ -118,23 +118,34 @@ public class SongDAO {
      * @param song The Song object to update.
      * @return true if the operation was successful.
      */
-    public boolean updateSong(Song song) {
-        final String query = "UPDATE Songs_Appears SET title = ?, author = ?, albumIdentifier = ? WHERE songId = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(query)) {
-            
-            pstmt.setString(1, song.getTitle());
-            pstmt.setString(2, song.getAuthor());
-            pstmt.setInt(3, song.getAlbumIdentifier());
-            pstmt.setInt(4, song.getSongId());
 
-            int affectedRows = pstmt.executeUpdate();
-            return affectedRows > 0;
+    public boolean updateSong(Song song) {
+        final String querySongs = "UPDATE songs SET title = ?, author = ? WHERE songId = ?";
+        final String querySongsAppears = "UPDATE Songs_Appears SET albumIdentifier = ? WHERE songId = ?";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmtSongs = conn.prepareStatement(querySongs);
+             PreparedStatement pstmtSongsAppears = conn.prepareStatement(querySongsAppears)) {
+
+            // Update the 'songs' table
+            pstmtSongs.setString(1, song.getTitle());
+            pstmtSongs.setString(2, song.getAuthor());
+            pstmtSongs.setInt(3, song.getSongId());
+            int affectedRowsSongs = pstmtSongs.executeUpdate();
+
+            // Update the 'Songs_Appears' table
+            pstmtSongsAppears.setInt(1, song.getAlbumIdentifier());
+            pstmtSongsAppears.setInt(2, song.getSongId());
+            int affectedRowsSongsAppears = pstmtSongsAppears.executeUpdate();
+
+            return (affectedRowsSongs > 0) || (affectedRowsSongsAppears > 0);
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return false;
     }
+    
+    
 
     /**
      * Deletes a song from the database by its identifier.

@@ -43,7 +43,6 @@ public class MusicianDAO {
                 // and return its name or the Instrument object itself.
                 InstrumentService instrumentService = new InstrumentService();
                 String instrumentId = rs.getString("instrId");
-                Instrument instrument = instrumentService.findInstrumentById(instrumentId);
                 
                 // Creating the Musician object with all the retrieved details.
                 return new Musician(
@@ -100,12 +99,16 @@ public class MusicianDAO {
      * @return true if the operation was successful.
      */
 
-     public boolean addMusician(Musician musician) {
+     public boolean addMusician(Musician musician, boolean newaddre_phone ) {
         Connection conn = null;
-        PreparedStatement pstmt1 = null, pstmt2 = null, pstmt3 = null;
+        PreparedStatement pstmt1 = null, pstmt2 = null, pstmt3 = null,pstmt4 = null,pstmt5 = null;
         boolean success = false;
 
         final String insertMusicianQuery = "INSERT INTO notownrecords.musicians (ssn, name) VALUES (?, ?)";
+
+        final String insertplacesQuery = "INSERT INTO places (address) VALUES (?)";
+        final String inserttelephone_homeQuery = "INSERT INTO telephone_home (phone, address) VALUES (?, ?)";
+
         final String insertLivesQuery = "INSERT INTO lives (ssn, phone, address) VALUES (?, ?, ?)";
         final String insertPlaysQuery = "INSERT INTO plays (ssn, instrId) VALUES (?, ?)";
 
@@ -118,6 +121,21 @@ public class MusicianDAO {
             pstmt1.setString(1, musician.getSsn());
             pstmt1.setString(2, musician.getName());
             pstmt1.executeUpdate();
+
+            if (newaddre_phone)
+            {
+                // Insert into insertplacesQuery
+                pstmt5 = conn.prepareStatement(insertplacesQuery);
+                pstmt5.setString(1, musician.getAddress());
+                pstmt5.executeUpdate();
+
+                // Insert into inserttelephone_homeQuery
+                pstmt4 = conn.prepareStatement(inserttelephone_homeQuery);
+                pstmt4.setString(1, musician.getPhoneNumber());
+                pstmt4.setString(2, musician.getAddress());
+                pstmt4.executeUpdate();
+            }
+
 
             // Insert into lives
             pstmt2 = conn.prepareStatement(insertLivesQuery);
@@ -166,65 +184,82 @@ public class MusicianDAO {
      * @param musician The Musician object to update.
      * @return true if the operation was successful.
      */
-
      public boolean updateMusician(Musician musician) {
-        Connection conn = null;
-        PreparedStatement pstmt1 = null, pstmt2 = null, pstmt3 = null;
-        boolean success = false;
+    	    Connection conn = null;
+    	    PreparedStatement pstmt1 = null, pstmt2 = null, pstmt3 = null, pstmtCheck = null;
+    	    ResultSet rs = null;
+    	    boolean success = false;
 
-        final String updateMusicianQuery = "UPDATE notownrecords.musicians SET name = ? WHERE ssn = ?";
-        final String updateLivesQuery = "UPDATE lives SET phone = ?, address = ? WHERE ssn = ?";
-        final String updatePlaysQuery = "UPDATE plays SET instrId = ? WHERE ssn = ?";
+    	    final String updateMusicianQuery = "UPDATE notownrecords.musicians SET name = ? WHERE ssn = ?";
+    	    final String updateLivesQuery = "UPDATE lives SET phone = ?, address = ? WHERE ssn = ?";
+    	    final String updatePlaysQuery = "UPDATE plays SET instrId = ? WHERE ssn = ?";
+    	    final String checkPhoneQuery = "SELECT phone FROM telephone_home WHERE address = ?";
 
-        try {
-            conn = DatabaseConnection.getConnection();
-            conn.setAutoCommit(false);
+    	    try {
+    	        conn = DatabaseConnection.getConnection();
+    	        conn.setAutoCommit(false);
 
-            // Update notownrecords.musicians
-            pstmt1 = conn.prepareStatement(updateMusicianQuery);
-            pstmt1.setString(1, musician.getName());
-            pstmt1.setString(2, musician.getSsn());
-            pstmt1.executeUpdate();
+    	        // Check for existing phone number for the address
+    	        pstmtCheck = conn.prepareStatement(checkPhoneQuery);
+    	        pstmtCheck.setString(1, musician.getAddress());
+    	        rs = pstmtCheck.executeQuery();
+    	        if (rs.next()) {
+    	            String existingPhone = rs.getString("phone");
+    	            if (!existingPhone.equals(musician.getPhoneNumber())) {
+    	                // Conflict detected - should be resolved before update
+    	                conn.rollback();
+    	                return false;
+    	            }
+    	        }
 
-            // Update lives
-            pstmt2 = conn.prepareStatement(updateLivesQuery);
-            pstmt2.setString(1, musician.getPhoneNumber());
-            pstmt2.setString(2, musician.getAddress());
-            pstmt2.setString(3, musician.getSsn());
-            pstmt2.executeUpdate();
+    	        // Update notownrecords.musicians
+    	        pstmt1 = conn.prepareStatement(updateMusicianQuery);
+    	        pstmt1.setString(1, musician.getName());
+    	        pstmt1.setString(2, musician.getSsn());
+    	        pstmt1.executeUpdate();
 
-            // Update plays
-            pstmt3 = conn.prepareStatement(updatePlaysQuery);
-            pstmt3.setString(1, musician.getIntsrument_id());
-            pstmt3.setString(2, musician.getSsn());
-            pstmt3.executeUpdate();
+    	        // Update lives
+    	        pstmt2 = conn.prepareStatement(updateLivesQuery);
+    	        pstmt2.setString(1, musician.getPhoneNumber());
+    	        pstmt2.setString(2, musician.getAddress());
+    	        pstmt2.setString(3, musician.getSsn());
+    	        pstmt2.executeUpdate();
 
-            conn.commit();
-            success = true;
-        } catch (SQLException e) {
-            if (conn != null) {
+    	        // Update plays
+    	        pstmt3 = conn.prepareStatement(updatePlaysQuery);
+    	        pstmt3.setString(1, musician.getIntsrument_id());
+    	        pstmt3.setString(2, musician.getSsn());
+    	        pstmt3.executeUpdate();
+
+    	        conn.commit();
+    	        success = true;
+    	    } catch (SQLException e) {
+    	        if (conn != null) {
+    	            try {
+    	                conn.rollback();
+    	            } catch (SQLException ex) {
+    	                ex.printStackTrace();
+    	            }
+    	        }
+    	        e.printStackTrace();
+    	    } finally {
                 try {
-                    conn.rollback();
-                } catch (SQLException ex) {
-                    ex.printStackTrace();
+                    if (pstmt1 != null) pstmt1.close();
+                    if (pstmt2 != null) pstmt2.close();
+                    if (pstmt3 != null) pstmt3.close();
+                    if (conn != null) {
+                        conn.setAutoCommit(true);
+                        conn.close();
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
                 }
             }
-            e.printStackTrace();
-        } finally {
-            try {
-                if (pstmt1 != null) pstmt1.close();
-                if (pstmt2 != null) pstmt2.close();
-                if (pstmt3 != null) pstmt3.close();
-                if (conn != null) {
-                    conn.setAutoCommit(true);
-                    conn.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-        return success;
-    }
+    	    return success;
+    	}
+
+   
+
 
 
 
@@ -351,4 +386,33 @@ public class MusicianDAO {
 //        return musicians;
 //    }
     
+// ... (existing methods)
+
+public String getPhoneByAddress(String address) throws SQLException {
+    String phoneQuery = "SELECT phone FROM telephone_home WHERE address = ?";
+    try (Connection conn = DatabaseConnection.getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(phoneQuery)) {
+        
+        pstmt.setString(1, address);
+        try (ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getString("phone");
+            }
+        }
+    }
+    return null;
+}
+
+public void updatePhoneNumber(String phone, String address) throws SQLException {
+    String updatePhoneQuery = "UPDATE telephone_home SET phone = ? WHERE address = ?";
+    try (Connection conn = DatabaseConnection.getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(updatePhoneQuery)) {
+        
+        pstmt.setString(1, phone);
+        pstmt.setString(2, address);
+        pstmt.executeUpdate();
+    }
+}
+
+
 }

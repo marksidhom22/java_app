@@ -46,8 +46,10 @@ public class Musician implements Serializable {
         this.name = name;
         this.address = address;
         this.phoneNumber = phoneNumber;
-        this.instr_id=instr_id;
-        // this.instr_name=this.instrumentService.findInstrumentById(this.instr_id).getName();
+//        this.instr_id=this.instrumentService.findInstrumentByName(instr_name).getInstrId();
+//        this.instr_name=instr_name;
+      this.instr_id=instr_id;
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -104,7 +106,7 @@ public class Musician implements Serializable {
 
         public void setInstrName(String instr_name) {
         this.instr_name = instr_name;
-        this.instr_id=instrumentService.findInstrumentByName(instr_name).getName();
+        this.instr_id=instrumentService.findInstrumentByName(instr_name).getInstrId();
     }
 
         public void setInstrNameUsingInstrId(String instr_id) {

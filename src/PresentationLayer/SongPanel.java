@@ -169,12 +169,13 @@ public class SongPanel extends JPanel {
                 // Assuming the Song constructor takes id, author, title, albumId
                 Song newSong = new Song(id, author, title, Integer.parseInt(selectedAlbumID));
                 
-                // Add to the table in the GUI
-                Object[] rowData = {id, author, title, selectedAlbumID};
-                addSong(rowData);
                 
                 // Interact with business logic to add the song
                 songService.addSong(newSong); // Correctly pass a Song object to the service
+
+                // Add to the table in the GUI
+                loadSongs();
+
             } catch (NumberFormatException e) {
                 JOptionPane.showMessageDialog(null, "Please enter valid numerical IDs.");
             }
@@ -183,33 +184,78 @@ public class SongPanel extends JPanel {
 
 
     private void editSongDialog(int rowIndex) {
-        String id = (String) tableModel.getValueAt(rowIndex, 0);
-        String author = (String) tableModel.getValueAt(rowIndex, 1);
-        String title = (String) tableModel.getValueAt(rowIndex, 2);
-        String albumId = (String) tableModel.getValueAt(rowIndex, 3);
+        Object idObject = tableModel.getValueAt(rowIndex, 0);
+        Object authorObject = tableModel.getValueAt(rowIndex, 1);
+        Object titleObject = tableModel.getValueAt(rowIndex, 2);
+        Object albumIdObject = tableModel.getValueAt(rowIndex, 3);
+        
+        // Check the type and convert to String if necessary
+        String id =idObject.toString();
+        String author = authorObject.toString();
+        String title = titleObject.toString();
+        String albumId = albumIdObject.toString();
+        
 
         JTextField idField = new JTextField(id);
         JTextField authorField = new JTextField(author);
         JTextField titleField = new JTextField(title);
         JTextField albumIdField = new JTextField(albumId);
 
+
+        List<Album> albums = albumService.listAllAlbums();
+        String[] albnames = new String[albums.size()];
+        
+        // Extract producer names from the list and store them in the producerNames array
+        for (int i = 0; i < albums.size(); i++) {
+            albnames[i] = albums.get(i).getTitle();
+        }
+                // Create a list of producer names along with their SSNs
+        List<String> albInfolist = new ArrayList<>();
+        for (Album album : albums) {
+            albInfolist.add(album.getTitle() + " (" + album.getAlbumIdentifier() + ")");
+        }        JComboBox<String> albumComboBox = new JComboBox<>(albInfolist.toArray(new String[0]));
         Object[] message = {
             "Song ID:", idField,
             "Author:", authorField,
             "Title:", titleField,
-            "Album ID:", albumIdField
+            "Album ID:", albumComboBox
         };
 
         int option = JOptionPane.showConfirmDialog(null, message, "Edit Song", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
-            id = idField.getText();
-            author = authorField.getText();
-            title = titleField.getText();
-            albumId = albumIdField.getText();
-            Object[] rowData = {id, author, title, albumId};
-            editSong(rowIndex, rowData);
-//            songService.updateSong(id, author, title, albumId); // Interact with business logic
+            try {
+                int new_id = Integer.parseInt(idField.getText().trim()); // Assuming the ID is an integer
+                String new_author = authorField.getText().trim();
+                String new_title = titleField.getText().trim();
+                // int new_albumId = Integer.parseInt(albumIdField.getText().trim()); // Assuming the Album ID is an integer
+                
 
+                // You need to convert producer name to SSN or adapt your Album class to use name instead
+                // This is just an example assuming you have a method to get SSN by name
+                String selectedAlbumInfo = (String) albumComboBox.getSelectedItem();
+                // Split the selected producer info to separate name and SSN
+                String[] parts = selectedAlbumInfo.split(" ");
+                String selectedAlbumName = String.join(" " ,parts  ); // Extract the producer name
+                String selectedAlbumID = parts[parts.length-1].substring(1, parts[parts.length-1].length() - 1); // Extract the SSN
+                selectedAlbumName= selectedAlbumName.replace(selectedAlbumID, "");
+
+
+
+
+
+
+                // Assuming the Song constructor takes id, author, title, albumId
+                Song newSong = new Song( new_id, new_author, new_title, Integer.parseInt(selectedAlbumID));
+                
+                
+                // Interact with business logic to add the song
+                songService.updateSong(newSong); // Correctly pass a Song object to the service
+
+                loadSongs();
+
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(null, "Please enter valid numerical IDs.");
+            }
         }
     }
 
@@ -243,6 +289,8 @@ public class SongPanel extends JPanel {
 
 
     public void loadSongs() {
+        tableModel.setRowCount(0);
+        table.revalidate();
         List<Song> songs = songService.listAllSongs(); // Retrieve the list of songs
         for (Song song : songs) {
             // Assuming that Song has getId(), getAuthor(), getTitle(), and getAlbumId() methods to access its properties
@@ -250,7 +298,7 @@ public class SongPanel extends JPanel {
                 song.getSongId(),
                 song.getAuthor(),
                 song.getTitle(),
-                song.getAlbumIdentifier()
+                albumService.findAlbumById(song.getAlbumIdentifier()).getTitle()
             };
             tableModel.addRow(rowData); // Add the song data as a new row in the table
         }
@@ -269,8 +317,8 @@ public class SongPanel extends JPanel {
             		song.getSongId(),
             		song.getAuthor(),
             		song.getTitle(),
-            		song.getAlbumIdentifier()
-            };
+                    albumService.findAlbumById(song.getAlbumIdentifier()).getTitle()
+             };
             tableModel.addRow(rowData);
         }
     }

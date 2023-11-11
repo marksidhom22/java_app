@@ -44,5 +44,7 @@ public interface IMusicianService {
      */
     void deleteMusicianBySSN(String ssn);
 
+	int checkAndResolvePhoneConflict(Musician musician);
+
     // Additional methods for musician-related operations can be defined here
 }
