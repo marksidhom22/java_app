@@ -56,6 +56,24 @@ public class Musician implements Serializable {
   
     }
 
+    public Musician(String ssn, String name, String address, String phoneNumber,String instr_id,String instr_name) {
+        try {
+              this.instrumentService=new InstrumentService();
+            this.ssn = ssn;
+        this.name = name;
+        this.address = address;
+        this.phoneNumber = phoneNumber;
+//        this.instr_id=this.instrumentService.findInstrumentByName(instr_name).getInstrId();
+       this.instr_name=instr_name;
+      this.instr_id=instr_id;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+  
+    }
+
+
     // Getters and setters for the musician properties
 
     public String getSsn() {

@@ -152,35 +152,100 @@ public class MusicianPanel extends JPanel {
                     nameField.getText(),
                     addressField.getText(),
                     phoneNumberField.getText(),
-                    instrumentservice.findInstrumentByName(selectedInstrumentName).getInstrId()
+                    instrumentservice.findInstrumentByName(selectedInstrumentName).getInstrId(),
+                    selectedInstrumentName
             );
-            musicianService.addMusician(newMusician);
+            if ( musicianService.addMusician(newMusician)==false)
+            {
+                addMusicianDialog(newMusician);
+                return;
+            }
             loadMusicians(); // Reload the musicians after addition
         }
     }
 
+    private void addMusicianDialog(Musician newMusician) {
+        JComboBox<String> instrumentComboBox = new JComboBox<>();
+        List<Instrument> instruments = instrumentservice.listAllInstruments(); // Use service to get instruments
+        for (Instrument instrument : instruments) {
+            instrumentComboBox.addItem(instrument.getName()); // Assuming Instrument has a getName() method
+        }
+        // Fields for musician details
+        JTextField ssnField = new JTextField();
+        JTextField nameField = new JTextField();
+        JTextField addressField = new JTextField();
+        JTextField phoneNumberField = new JTextField();
+
+        Object[] message = {
+            "SSN:", ssnField,
+            "Name:", nameField,
+            "Instrument:", instrumentComboBox, // Use JComboBox instead of JTextField
+            "Address:", addressField,
+            "Phone Number:", phoneNumberField
+        };
+
+        ssnField.setText(newMusician.getSsn());
+        nameField.setText(newMusician.getName());
+        
+        instrumentComboBox.setSelectedItem(newMusician.getIntsrument_name());
+        addressField.setText(newMusician.getAddress());
+        phoneNumberField.setText(newMusician.getPhoneNumber());
+
+        int option = JOptionPane.showConfirmDialog(null, message, "Add New Musician", JOptionPane.OK_CANCEL_OPTION);
+        if (option == JOptionPane.OK_OPTION) {
+            String selectedInstrumentName = (String) instrumentComboBox.getSelectedItem();
+
+            // Create a new musician object with the input data
+            newMusician = new Musician(
+                    ssnField.getText(),
+                    nameField.getText(),
+                    addressField.getText(),
+                    phoneNumberField.getText(),
+                    instrumentservice.findInstrumentByName(selectedInstrumentName).getInstrId(),
+                    selectedInstrumentName
+            );
+            if ( musicianService.addMusician(newMusician)==false)
+            {
+                addMusicianDialog(newMusician);
+                return;
+            }            
+            loadMusicians(); // Reload the musicians after addition
+        }
+    }
+
+
+
     private void editMusicianDialog(int rowIndex) {
+        
+        JComboBox<String> instrumentComboBox = new JComboBox<>();
+        List<Instrument> instruments = instrumentservice.listAllInstruments(); // Use service to get instruments
+        for (Instrument instrument : instruments) {
+            instrumentComboBox.addItem(instrument.getName()); // Assuming Instrument has a getName() method
+        }
+
+
         // Get the current data
         String ssn = (String) tableModel.getValueAt(rowIndex, 0);
         Musician musician = musicianService.findMusicianBySSN(ssn);
         JTextField nameField = new JTextField(musician.getName());
-        JTextField instrumentField = new JTextField(musician.getIntsrument_name());
         JTextField addressField = new JTextField(musician.getAddress());
         JTextField phoneNumberField = new JTextField(musician.getPhoneNumber());
-
+        String instr_name=instrumentservice.findInstrumentById(musician.getIntsrument_id()).getName();
+        
         Object[] message = {
             "SSN (cannot be changed):", ssn,
             "Name:", nameField,
-            "Instrument Name:", instrumentField,
+            "Instrument:", instrumentComboBox,
             "Address:", addressField,
             "Phone Number:", phoneNumberField
         };
+        instrumentComboBox.setSelectedItem(instr_name);
 
         int option = JOptionPane.showConfirmDialog(null, message, "Edit Musician", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
             // Update the musician object with the new data
             musician.setName(nameField.getText());
-            musician.setInstrName(instrumentField.getText());
+            musician.setInstrName((String)instrumentComboBox.getSelectedItem());
             musician.setAddress(addressField.getText());
             musician.setPhoneNumber(phoneNumberField.getText());
             musicianService.updateMusician(musician);

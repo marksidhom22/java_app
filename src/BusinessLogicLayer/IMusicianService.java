@@ -28,7 +28,7 @@ public interface IMusicianService {
      *
      * @param musician the Musician object to add
      */
-    void addMusician(Musician musician);
+    boolean addMusician(Musician musician);
 
     /**
      * Updates a musician's information in the database.

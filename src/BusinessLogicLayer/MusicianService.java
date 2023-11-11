@@ -67,14 +67,20 @@ public class MusicianService implements IMusicianService {
     }
 
     @Override
-    public void addMusician(Musician musician) {
+    public boolean addMusician(Musician musician) {
         // Logic to add a new musician using the MusicianDAO
         if (musician != null) {
             if (musicianDao.getMusicianById(musician.getSsn()) == null) {
             	int status = checkAndResolvePhoneConflict(musician);
-                if (status!=0) {
+                if (status!=0 && status!=3) {
                     musicianDao.addMusician(musician,status==1);
-                } else {
+                } 
+                else if (status==3)
+                {
+                    return false;
+                }
+                
+                else {
                     // Handle the case where the phone conflict is not resolved
                     JOptionPane.showMessageDialog(null, "The musician could not be added due to unresolved phone/address conflict.", "Add Musician Error", JOptionPane.ERROR_MESSAGE);
                 }
@@ -83,6 +89,7 @@ public class MusicianService implements IMusicianService {
                 JOptionPane.showMessageDialog(null, "A musician with the given SSN already exists.", "Add Musician Error", JOptionPane.ERROR_MESSAGE);
             }
         }
+        return true;
     }
     
 
@@ -141,7 +148,7 @@ private int resolvePhoneConflict(Musician musician, String existingPhone) {
                 return 2;
             case 2: // Change Address
                 // The address needs to be changed by the user
-                return 0;
+                return 3;
             default:
                 return 0;
         }
