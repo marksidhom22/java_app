@@ -31,7 +31,7 @@ public class AlbumDAO {
                         rs.getInt("albumIdentifier"),
                         rs.getString("ssn") ,
                         rs.getDate("copyrightDate"),
-                        rs.getInt("speed"),
+                        rs.getString("speed"),
                         rs.getString("title")
 
                 );
@@ -59,7 +59,7 @@ public class AlbumDAO {
                         rs.getInt("albumIdentifier"),
                         rs.getString("ssn") ,
                         rs.getDate("copyrightDate"),
-                        rs.getInt("speed"),
+                        rs.getString("speed"),
                         rs.getString("title")
 
                 ));
@@ -84,7 +84,7 @@ public class AlbumDAO {
             pstmt.setInt(1, album.getAlbumIdentifier());
             pstmt.setString(2, album.getTitle());
             pstmt.setDate(3, new java.sql.Date(album.getCopyrightDate().getTime()));
-            pstmt.setInt(4, album.getSpeed());
+            pstmt.setString(4, album.getSpeed());
             pstmt.setString(5, album.getSsn());
 
             int affectedRows = pstmt.executeUpdate();
@@ -108,7 +108,7 @@ public class AlbumDAO {
             
             pstmt.setString(1, album.getTitle());
             pstmt.setDate(2, new java.sql.Date(album.getCopyrightDate().getTime()));
-            pstmt.setInt(3, album.getSpeed());
+            pstmt.setString(3, album.getSpeed());
             pstmt.setString(4, album.getSsn());
             pstmt.setInt(5, album.getAlbumIdentifier());
 

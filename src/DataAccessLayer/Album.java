@@ -11,7 +11,7 @@ public class Album implements Serializable {
     private int albumIdentifier;
     private String ssn; // Producer's SSN
     private Date copyrightDate;
-    private int speed;
+    private String speed;
     private String title;
 
     /**
@@ -29,7 +29,7 @@ public class Album implements Serializable {
      * @param speed           Speed of the album.
      * @param title           Title of the album.
      */
-    public Album(int albumIdentifier, String ssn, Date copyrightDate, int speed, String title) {
+    public Album(int albumIdentifier, String ssn, Date copyrightDate, String speed, String title) {
         this.albumIdentifier = albumIdentifier;
         this.ssn = ssn;
         this.copyrightDate = copyrightDate;
@@ -63,11 +63,11 @@ public class Album implements Serializable {
         this.copyrightDate = copyrightDate;
     }
 
-    public int getSpeed() {
+    public String getSpeed() {
         return speed;
     }
 
-    public void setSpeed(int speed) {
+    public void setSpeed(String speed) {
         this.speed = speed;
     }
 

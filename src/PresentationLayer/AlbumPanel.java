@@ -50,7 +50,7 @@ public class AlbumPanel extends JPanel {
         setLayout(new BorderLayout()); // Use BorderLayout for panel layout
 
         // Initialize the table with a DefaultTableModel
-        tableModel = new DefaultTableModel(new Object[]{"Album ID", "Title", "Copyright Date", "Speed", "Producer SSN"}, 0);
+        tableModel = new DefaultTableModel(new Object[]{"Album ID", "Title", "Copyright Date", "Speed", "Producer Name"}, 0);
         table = new JTable(tableModel);
 
         // Add table to a scroll pane
@@ -190,7 +190,7 @@ public class AlbumPanel extends JPanel {
 
                 
                 java.sql.Date copyrightDate = new java.sql.Date(selectedSqlDate.getTime());
-                int speed = Integer.parseInt(speedField.getText().trim());
+                String speed = speedField.getText().trim();
     
                 // You need to convert producer name to SSN or adapt your Album class to use name instead
                 // This is just an example assuming you have a method to get SSN by name
@@ -301,7 +301,7 @@ public class AlbumPanel extends JPanel {
                 DateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
                 java.util.Date copyrightDate_new = format.parse(copyrightField.getText().trim());
             
-                int speed_new = Integer.parseInt(speedField.getText().trim());
+                String speed_new = speedField.getText().trim();
     
                 // Get the selected producer from the combo box
                 String selectedProducerInfo = (String) producerComboBox.getSelectedItem();
@@ -387,7 +387,7 @@ public class AlbumPanel extends JPanel {
                 album.getTitle(),
                 album.getCopyrightDate(),
                 album.getSpeed(),
-                album.getSsn()
+                producerService.findProducerBySSN( album.getSsn()).getName()
             };
             tableModel.addRow(rowData);
         }
