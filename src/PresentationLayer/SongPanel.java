@@ -3,6 +3,9 @@ package PresentationLayer;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -26,14 +29,45 @@ public class SongPanel extends JPanel {
     private JTextField searchField;
     private JButton searchButton;
     private AlbumService albumService;
+
+
+    
     public SongPanel() {
+        // Create a title label
+        JLabel titleLabel = new JLabel("Song Management System");
+        titleLabel.setFont(new Font("Serif", Font.BOLD, 24)); // Example font setting
+        titleLabel.setHorizontalAlignment(JLabel.CENTER);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Adds padding around the title
+
+        // Create a panel for the title label and add the label to it
+        JPanel titlePanel = new JPanel();
+        titlePanel.add(titleLabel, BorderLayout.CENTER);
+
+        // Add the title panel to the top of the main panel, above the search panel
+
 
         this.songService = new SongService(null);
         this.albumService=new AlbumService();
+        // Create a search panel
+        // Improved search panel with padding
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        // searchPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10)); // Adds padding around the search panel
         searchField = new JTextField(20);
         searchButton = new JButton("Search");
+        // searchPanel.setLayout(new BoxLayout(searchPanel, BoxLayout.LINE_AXIS));
+        // searchPanel.add(new JLabel("Search:"));
+        searchPanel.add(Box.createRigidArea(new Dimension(5, 0))); // Adds spacing between label and field
+        searchPanel.add(searchField);
+        searchPanel.add(Box.createRigidArea(new Dimension(5, 0))); // Adds spacing between field and button
+        searchPanel.add(searchButton);
+
+
+
+
 
         setLayout(new BorderLayout()); // Use BorderLayout for the panel layout
+
+
 
         // Initialize the table model and set up the columns
         tableModel = new DefaultTableModel(new Object[]{"Song ID", "Author", "Title", "Album ID"}, 0);
@@ -41,15 +75,32 @@ public class SongPanel extends JPanel {
 
         // Scroll pane for table which allows it to be scrollable
         JScrollPane scrollPane = new JScrollPane(table);
-        add(scrollPane, BorderLayout.CENTER);
+        // add(scrollPane, BorderLayout.CENTER);
 
         // Create a panel for the buttons
-        JPanel buttonPanel = new JPanel();
         addButton = new JButton("Add");
         editButton = new JButton("Edit");
         deleteButton = new JButton("Delete");
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.add(addButton);
+        buttonPanel.add(editButton);
+        buttonPanel.add(deleteButton);
 
+        // Panel that contains both the search panel and button panel
+        JPanel searchAndCrudPanel = new JPanel(new BorderLayout());
+        searchAndCrudPanel.add(searchPanel, BorderLayout.WEST);
+        searchAndCrudPanel.add(buttonPanel, BorderLayout.EAST);
 
+        // North panel with title and combined search/CRUD panel
+        JPanel northPanel = new JPanel(new BorderLayout());
+        northPanel.add(titleLabel, BorderLayout.NORTH);
+        northPanel.add(searchAndCrudPanel, BorderLayout.SOUTH);
+
+        // Main panel layout adjustments
+        setLayout(new BorderLayout(10, 10)); // Adds spacing between north, center, and south components
+        add(northPanel, BorderLayout.NORTH);
+        add(scrollPane, BorderLayout.CENTER);
+        // add(buttonPanel, BorderLayout.SOUTH);
 
         // Action listeners for the buttons
         addButton.addActionListener(new ActionListener() {
@@ -91,22 +142,6 @@ public class SongPanel extends JPanel {
             }
         });
 
-        // Add the search components to the button panel or a new panel
-        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        searchPanel.add(new JLabel("Search:"));
-        searchPanel.add(searchField);
-        searchPanel.add(searchButton);
-
-        // Add the search panel to the top of the main panel
-        add(searchPanel, BorderLayout.NORTH);
-
-        // Add buttons to the panel
-        buttonPanel.add(addButton);
-        buttonPanel.add(editButton);
-        buttonPanel.add(deleteButton);
-
-        // Add the button panel to the main panel
-        add(buttonPanel, BorderLayout.SOUTH);
         loadSongs();
 
     }
