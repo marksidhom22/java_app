@@ -2,6 +2,9 @@ package PresentationLayer;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -200,8 +203,9 @@ public class AlbumPanel extends JPanel {
                 String selectedProducerName = String.join(" " ,parts  ); // Extract the producer name
                 String selectedProducerSSN = parts[parts.length-1].substring(1, parts[parts.length-1].length() - 1); // Extract the SSN
                 selectedProducerName= selectedProducerName.replace(selectedProducerSSN, "");
+                selectedProducerName=selectedProducerName.replace("(","");
+                selectedProducerName=selectedProducerName.replace(")","");
 
-        
                 // Create an album object with the input data
                 Album album = new Album(id, selectedProducerSSN, copyrightDate, speed,  title);
                 // Call the service layer to add the album
@@ -276,14 +280,17 @@ public class AlbumPanel extends JPanel {
         int albumId = (Integer) tableModel.getValueAt(rowIndex, 0); // Assuming albumId is an integer
         String title = (String) tableModel.getValueAt(rowIndex, 1);
         Date copyrightDate = (Date) tableModel.getValueAt(rowIndex, 2); // Assuming copyrightDate is stored as java.sql.Date
-        int speed = (Integer) tableModel.getValueAt(rowIndex, 3); // Assuming speed is an integer
+        // int speed = (Integer) tableModel.getValueAt(rowIndex, 3); // Assuming speed is an integer
+        String speed = (String) tableModel.getValueAt(rowIndex, 3); // Assuming speed is an integer
+
         String producer_name = (String) tableModel.getValueAt(rowIndex, 4);
     
         // Show dialog to edit the album details
         JTextField titleField = new JTextField(title);
         JTextField copyrightField = new JTextField(copyrightDate.toString());
-        JTextField speedField = new JTextField(Integer.toString(speed));
-    
+        // JTextField speedField = new JTextField(Integer.toString(speed));
+        JTextField speedField = new JTextField(speed);
+
         Object[] message = {
             "Title:", titleField,
             "Copyright Date (YYYY-MM-DD):", copyrightField,
@@ -370,7 +377,16 @@ public class AlbumPanel extends JPanel {
                     producerService.findProducerBySSN( album.getSsn()).getName()
                 };
                 tableModel.addRow(rowData);
-            }          
+            }    
+             
+                    //Hide the ID column but do not remove it
+        // Hide the ID column
+        TableColumnModel columnModel = table.getColumnModel();
+        TableColumn idColumn = columnModel.getColumn(0); // Assuming the ID column is the first column
+        columnModel.removeColumn(idColumn);    
+
+
+
     }
 
     private void searchAlbums(String searchQuery) {

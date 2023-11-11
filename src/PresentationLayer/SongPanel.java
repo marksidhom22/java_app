@@ -232,6 +232,7 @@ public class SongPanel extends JPanel {
         
 
         JTextField idField = new JTextField(id);
+        idField.setEditable(false);
         JTextField authorField = new JTextField(author);
         JTextField titleField = new JTextField(title);
         JTextField albumIdField = new JTextField(albumId);
@@ -337,6 +338,14 @@ public class SongPanel extends JPanel {
             };
             tableModel.addRow(rowData); // Add the song data as a new row in the table
         }
+
+        // Hide the ID column
+        TableColumnModel columnModel = table.getColumnModel();
+        TableColumn idColumn = columnModel.getColumn(0); // Assuming the ID column is the first column
+        columnModel.removeColumn(idColumn);    
+
+
+
     }
 
     private void SearchSongs(String searchQuery) {

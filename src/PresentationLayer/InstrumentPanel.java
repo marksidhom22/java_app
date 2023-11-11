@@ -2,6 +2,8 @@ package PresentationLayer;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 
 import BusinessLogicLayer.InstrumentService;
 import DataAccessLayer.Instrument;
@@ -129,6 +131,7 @@ public class InstrumentPanel extends JPanel {
         String type = (String) tableModel.getValueAt(rowIndex, 2);
 
         JTextField idField = new JTextField(id);
+        idField.setEditable(false);
         JTextField nameField = new JTextField(name);
         JTextField typeField = new JTextField(type);
 
@@ -216,8 +219,13 @@ public class InstrumentPanel extends JPanel {
         // Populate the table model with instrument data.
         for (Instrument instrument : instruments) {
             tableModel.addRow(new Object[]{instrument.getInstrId(), instrument.getName(), instrument.getKey()});
+
         }
-    }
+        //Hide the ID column but do not remove it
+        // Hide the ID column
+        TableColumnModel columnModel = table.getColumnModel();
+        TableColumn idColumn = columnModel.getColumn(0); // Assuming the ID column is the first column
+        columnModel.removeColumn(idColumn);    }
 
     private void SearchInstruments(String searchQuery) {
         // Clear the existing data in the table model.
