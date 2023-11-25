@@ -383,7 +383,7 @@ public class AlbumPanel extends JPanel {
         // Hide the ID column
         TableColumnModel columnModel = table.getColumnModel();
         TableColumn idColumn = columnModel.getColumn(0); // Assuming the ID column is the first column
-        columnModel.removeColumn(idColumn);    
+        //columnModel.removeColumn(idColumn);    
 
 
 

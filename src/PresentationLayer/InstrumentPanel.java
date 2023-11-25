@@ -225,7 +225,8 @@ public class InstrumentPanel extends JPanel {
         // Hide the ID column
         TableColumnModel columnModel = table.getColumnModel();
         TableColumn idColumn = columnModel.getColumn(0); // Assuming the ID column is the first column
-        columnModel.removeColumn(idColumn);    }
+        //columnModel.removeColumn(idColumn);    
+        }
 
     private void SearchInstruments(String searchQuery) {
         // Clear the existing data in the table model.

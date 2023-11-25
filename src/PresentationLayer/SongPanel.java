@@ -13,7 +13,6 @@ import java.awt.event.ActionListener;
 import BusinessLogicLayer.AlbumService;
 import BusinessLogicLayer.SongService;
 import DataAccessLayer.Album;
-import DataAccessLayer.Producer;
 import DataAccessLayer.Song;
 
 import java.util.ArrayList;
@@ -342,7 +341,7 @@ public class SongPanel extends JPanel {
         // Hide the ID column
         TableColumnModel columnModel = table.getColumnModel();
         TableColumn idColumn = columnModel.getColumn(0); // Assuming the ID column is the first column
-        columnModel.removeColumn(idColumn);    
+        //columnModel.removeColumn(idColumn);    
 
 
 
