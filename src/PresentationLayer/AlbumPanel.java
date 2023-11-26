@@ -38,99 +38,117 @@ public class AlbumPanel extends JPanel {
     private JButton editButton;
     private JButton deleteButton;
     private DefaultTableModel tableModel;
-    private AlbumService albumService; // Add a field for the album service
+    private AlbumService albumService;
     private JTextField searchField;
     private JButton searchButton;
     private ProducerService producerService;
+    private JCheckBox albumIdCheckBox, titleCheckBox, copyrightDateCheckBox, speedCheckBox, producerNameCheckBox;
 
     public AlbumPanel() {
-        albumService = new AlbumService(); // Initialize the service
+        // Title Label
+        JLabel titleLabel = new JLabel("Album Management System");
+        titleLabel.setFont(new Font("Serif", Font.BOLD, 24));
+        titleLabel.setHorizontalAlignment(JLabel.CENTER);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // Initialize services
+        albumService = new AlbumService();
         producerService = new ProducerService();
 
-        // Initialize the search field and button
+        // Search Panel
+        JPanel searchPanel = new JPanel();
+        searchPanel.setLayout(new BoxLayout(searchPanel, BoxLayout.Y_AXIS));
+
+        JPanel searchFieldPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         searchField = new JTextField(20);
         searchButton = new JButton("Search");
-        setLayout(new BorderLayout()); // Use BorderLayout for panel layout
+        searchFieldPanel.add(searchField);
+        searchFieldPanel.add(searchButton);
 
-        // Initialize the table with a DefaultTableModel
+        JPanel checkBoxPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        albumIdCheckBox = new JCheckBox("Album ID");
+        titleCheckBox = new JCheckBox("Title");
+        copyrightDateCheckBox = new JCheckBox("Copyright Date");
+        speedCheckBox = new JCheckBox("Speed");
+        producerNameCheckBox = new JCheckBox("Producer Name");
+        albumIdCheckBox.setSelected(true);
+        titleCheckBox.setSelected(true);
+        copyrightDateCheckBox.setSelected(true);
+        speedCheckBox.setSelected(true);
+        producerNameCheckBox.setSelected(true);
+        checkBoxPanel.add(albumIdCheckBox);
+        checkBoxPanel.add(titleCheckBox);
+        checkBoxPanel.add(copyrightDateCheckBox);
+        checkBoxPanel.add(speedCheckBox);
+        checkBoxPanel.add(producerNameCheckBox);
+
+        searchPanel.add(searchFieldPanel);
+        searchPanel.add(checkBoxPanel);
+        searchPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Adjust the height as needed
+
+        // Layout
+        setLayout(new BorderLayout());
+
+        // Table Model
         tableModel = new DefaultTableModel(new Object[]{"Album ID", "Title", "Copyright Date", "Speed", "Producer Name"}, 0);
         table = new JTable(tableModel);
 
-        // Add table to a scroll pane
+        // Scroll Pane
         JScrollPane scrollPane = new JScrollPane(table);
-        add(scrollPane, BorderLayout.CENTER);
 
-        // Create a panel for the buttons
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        // Button Panel
         addButton = new JButton("Add");
         editButton = new JButton("Edit");
         deleteButton = new JButton("Delete");
-
-        // Add action listeners for the buttons
-        addButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-					addAlbumDialog();
-            }
-        });
-
-        editButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int selectedRow = table.getSelectedRow();
-                if (selectedRow >= 0) {
-                    try {
-						editAlbumDialog(selectedRow);
-					} catch (ParseException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-                } else {
-                    JOptionPane.showMessageDialog(null, "Please select an album to edit.");
-                }
-            }
-        });
-
-        deleteButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int selectedRow = table.getSelectedRow();
-                if (selectedRow >= 0) {
-                    deleteAlbum(selectedRow);
-                } else {
-                    JOptionPane.showMessageDialog(null, "Please select an album to delete.");
-                }
-            }
-        });
-
-        // Add action listener for the search button
-        searchButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String searchQuery = searchField.getText().trim();
-                searchAlbums(searchQuery);
-            }
-        });
-
-        // Add the search components to the button panel or a new panel
-        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        searchPanel.add(new JLabel("Search:"));
-        searchPanel.add(searchField);
-        searchPanel.add(searchButton);
-
-        // Add the search panel to the top of the main panel
-        add(searchPanel, BorderLayout.NORTH);
-
-
-        // Add the buttons to the panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.add(addButton);
         buttonPanel.add(editButton);
         buttonPanel.add(deleteButton);
 
-        // Add the button panel to the bottom of the main panel
-        add(buttonPanel, BorderLayout.SOUTH);
-        loadAlbums(); // Call this method to load albums from the database when the panel is initialized
+        // Combined Search and Button Panel
+        JPanel searchAndCrudPanel = new JPanel(new BorderLayout());
+        searchAndCrudPanel.add(searchPanel, BorderLayout.WEST);
+        searchAndCrudPanel.add(buttonPanel, BorderLayout.EAST);
 
+        // North Panel with Title and Search/CRUD Panel
+        JPanel northPanel = new JPanel(new BorderLayout());
+        northPanel.add(titleLabel, BorderLayout.NORTH);
+        northPanel.add(searchAndCrudPanel, BorderLayout.SOUTH);
+
+        // Main Panel Layout Adjustments
+        add(northPanel, BorderLayout.NORTH);
+        add(scrollPane, BorderLayout.CENTER);
+
+        // Button Actions
+        configureButtonActions();
+
+        // Load Initial Data
+        loadAlbums();
+    }
+
+    private void configureButtonActions() {
+        addButton.addActionListener(e -> addAlbumDialog());
+        editButton.addActionListener(e -> {
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow >= 0) {
+                try {
+                    editAlbumDialog(selectedRow);
+                } catch (ParseException e1) {
+                    e1.printStackTrace();
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "Please select an album to edit.");
+            }
+        });
+        deleteButton.addActionListener(e -> {
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow >= 0) {
+                deleteAlbum(selectedRow);
+            } else {
+                JOptionPane.showMessageDialog(null, "Please select an album to delete.");
+            }
+        });
+        searchButton.addActionListener(e -> searchAlbums(searchField.getText().trim()));
     }
 
     
@@ -390,23 +408,26 @@ public class AlbumPanel extends JPanel {
     }
 
     private void searchAlbums(String searchQuery) {
-        // Clear the current table model
+        boolean searchAlbumId = albumIdCheckBox.isSelected();
+        boolean searchTitle = titleCheckBox.isSelected();
+        boolean searchCopyrightDate = copyrightDateCheckBox.isSelected();
+        boolean searchSpeed = speedCheckBox.isSelected();
+        boolean searchProducerName = producerNameCheckBox.isSelected();
+
+        List<Album> searchResults = albumService.searchAlbums(searchQuery, searchAlbumId, searchTitle, true, searchSpeed, searchProducerName);
+
         tableModel.setRowCount(0);
-
-        // Fetch the search results from the AlbumService
-        List<Album> searchResults = albumService.searchAlbums(searchQuery);
-
-        // Populate the table with the search results
         for (Album album : searchResults) {
             Object[] rowData = {
                 album.getAlbumIdentifier(),
                 album.getTitle(),
                 album.getCopyrightDate(),
                 album.getSpeed(),
-                producerService.findProducerBySSN( album.getSsn()).getName()
+                producerService.findProducerBySSN(album.getSsn()).getName()
             };
             tableModel.addRow(rowData);
         }
     }
+
     
 }

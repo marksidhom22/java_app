@@ -46,11 +46,22 @@ public class SongService implements ISongService {
         songDAO.deleteSong(songId);
     }
 
-    public List<Song> SearchSongs(String searchQuery) {
-        // Assuming you have a collection of albums stored, e.g., List<Album> albums;
+    public List<Song> SearchSongs(String searchQuery, boolean searchAuthor, boolean searchTitle, boolean searchAlbumId) {
         return listAllSongs().stream()
-                     .filter(song -> song.toString().toLowerCase().contains(searchQuery.toLowerCase()))
-                     .collect(Collectors.toList());
+                    .filter(song -> {
+                        boolean matchesQuery = false;
+                        if (searchAuthor && song.getAuthor().toLowerCase().contains(searchQuery.toLowerCase())) {
+                            matchesQuery = true;
+                        }
+                        if (searchTitle && song.getTitle().toLowerCase().contains(searchQuery.toLowerCase())) {
+                            matchesQuery = true;
+                        }
+                        if (searchAlbumId && String.valueOf(song.getAlbumIdentifier()).contains(searchQuery)) {
+                            matchesQuery = true;
+                        }
+                        return matchesQuery;
+                    })
+                    .collect(Collectors.toList());
     }
 
 

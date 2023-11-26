@@ -62,11 +62,21 @@ public class InstrumentService implements IInstrumentService {
         return instrumentDao.deleteInstrument(instrId);
     }
 
-    public List<Instrument> SearchInstruments(String searchQuery) {
-        // Assuming you have a collection of albums stored, e.g., List<Album> albums;
+    public List<Instrument> searchInstruments(String searchQuery, boolean searchByName, boolean searchByKey) {
+        String query = searchQuery.toLowerCase();
         return listAllInstruments().stream()
-                     .filter(instrument -> instrument.toString().toLowerCase().contains(searchQuery.toLowerCase()))
-                     .collect(Collectors.toList());    }
+            .filter(instrument -> {
+                boolean matchesQuery = false;
+                if (searchByName && instrument.getName().toLowerCase().contains(query)) {
+                    matchesQuery = true;
+                }
+                if (searchByKey && instrument.getKey().toLowerCase().contains(query)) {
+                    matchesQuery = true;
+                }
+                return matchesQuery;
+            })
+            .collect(Collectors.toList());
+    }
 
     // Additional methods for other instrument-related operations can be implemented here
 }

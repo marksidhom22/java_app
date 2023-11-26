@@ -29,7 +29,9 @@ public class SongPanel extends JPanel {
     private JButton searchButton;
     private AlbumService albumService;
 
-
+    private JCheckBox authorCheckBox;
+    private JCheckBox titleCheckBox;
+    private JCheckBox albumIdCheckBox;
     
     public SongPanel() {
         // Create a title label
@@ -53,12 +55,22 @@ public class SongPanel extends JPanel {
         // searchPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10)); // Adds padding around the search panel
         searchField = new JTextField(20);
         searchButton = new JButton("Search");
+        authorCheckBox = new JCheckBox("Author");
+        authorCheckBox.setSelected(true);
+        titleCheckBox = new JCheckBox("Title");
+        titleCheckBox.setSelected(true);
+        albumIdCheckBox = new JCheckBox("Album ID");
+        albumIdCheckBox.setSelected(true);
+
         // searchPanel.setLayout(new BoxLayout(searchPanel, BoxLayout.LINE_AXIS));
         // searchPanel.add(new JLabel("Search:"));
         searchPanel.add(Box.createRigidArea(new Dimension(5, 0))); // Adds spacing between label and field
         searchPanel.add(searchField);
         searchPanel.add(Box.createRigidArea(new Dimension(5, 0))); // Adds spacing between field and button
         searchPanel.add(searchButton);
+        searchPanel.add(authorCheckBox);
+        searchPanel.add(titleCheckBox);
+        searchPanel.add(albumIdCheckBox);
 
 
 
@@ -137,7 +149,11 @@ public class SongPanel extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String searchQuery = searchField.getText().trim();
-                SearchSongs(searchQuery);
+                boolean searchAuthor = authorCheckBox.isSelected();
+                boolean searchTitle = titleCheckBox.isSelected();
+                boolean searchAlbumId = albumIdCheckBox.isSelected();
+                SearchSongs(searchQuery, searchAuthor, searchTitle, searchAlbumId);
+
             }
         });
 
@@ -347,12 +363,12 @@ public class SongPanel extends JPanel {
 
     }
 
-    private void SearchSongs(String searchQuery) {
+    private void SearchSongs(String searchQuery, boolean searchAuthor, boolean searchTitle, boolean searchAlbumId) {
         // Clear the current table model
         tableModel.setRowCount(0);
 
         // Fetch the search results from the AlbumService
-        List<Song> searchResults = this.songService.SearchSongs(searchQuery);
+        List<Song> searchResults = songService.SearchSongs(searchQuery, searchAuthor, searchTitle, searchAlbumId);
 
         // Populate the table with the search results
         for (Song song : searchResults) {

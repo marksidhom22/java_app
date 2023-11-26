@@ -7,7 +7,6 @@ import javax.swing.table.TableColumnModel;
 
 import BusinessLogicLayer.InstrumentService;
 import DataAccessLayer.Instrument;
-import DataAccessLayer.Song;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -23,85 +22,99 @@ public class InstrumentPanel extends JPanel {
     private InstrumentService instrumentService; // Service for handling business logic
     private JTextField searchField;
     private JButton searchButton;
+    private JCheckBox nameCheckBox;
+    private JCheckBox keyCheckBox;
 
     public InstrumentPanel() {
+        // Title Label
+        JLabel titleLabel = new JLabel("Instrument Management System");
+        titleLabel.setFont(new Font("Serif", Font.BOLD, 24));
+        titleLabel.setHorizontalAlignment(JLabel.CENTER);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // Instrument Service
         this.instrumentService = new InstrumentService();
+
+        // Search Panel
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         searchField = new JTextField(20);
         searchButton = new JButton("Search");
+        nameCheckBox = new JCheckBox("Name");
+        nameCheckBox.setSelected(true);
+        keyCheckBox = new JCheckBox("Instrument Key");
+        keyCheckBox.setSelected(true);
+        searchPanel.add(Box.createRigidArea(new Dimension(5, 0)));
+        searchPanel.add(searchField);
+        searchPanel.add(Box.createRigidArea(new Dimension(5, 0)));
+        searchPanel.add(searchButton);
+        searchPanel.add(nameCheckBox);
+        searchPanel.add(keyCheckBox);
+        // Layout
+        setLayout(new BorderLayout());
 
-        setLayout(new BorderLayout()); // Use BorderLayout for the panel layout
-
-        // Initialize the table model with column names
+        // Table Model
         tableModel = new DefaultTableModel(new Object[]{"Instrument ID", "Name", "Instrument Key"}, 0);
         table = new JTable(tableModel);
 
-        // Scroll pane to make the table scrollable
+        // Scroll Pane
         JScrollPane scrollPane = new JScrollPane(table);
-        add(scrollPane, BorderLayout.CENTER);
 
-        // Panel to hold the buttons
-        JPanel buttonPanel = new JPanel();
+        // Button Panel
         addButton = new JButton("Add");
         editButton = new JButton("Edit");
         deleteButton = new JButton("Delete");
-
-        // Add action listeners for the buttons
-        addButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                addInstrumentDialog();
-            }
-        });
-
-        editButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int selectedRow = table.getSelectedRow();
-                if (selectedRow >= 0) {
-                    editInstrumentDialog(selectedRow);
-                } else {
-                    JOptionPane.showMessageDialog(null, "Please select an instrument to edit.");
-                }
-            }
-        });
-
-        deleteButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int selectedRow = table.getSelectedRow();
-                if (selectedRow >= 0) {
-                    deleteInstrument1(selectedRow);
-                } else {
-                    JOptionPane.showMessageDialog(null, "Please select an instrument to delete.");
-                }
-            }
-        });
-        // Add action listener for the search button
-        searchButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String searchQuery = searchField.getText().trim();
-                SearchInstruments(searchQuery);
-            }
-        });
-
-        // Add the search components to the button panel or a new panel
-        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        searchPanel.add(new JLabel("Search:"));
-        searchPanel.add(searchField);
-        searchPanel.add(searchButton);
-
-        // Add the search panel to the top of the main panel
-        add(searchPanel, BorderLayout.NORTH);
-
-        // Add buttons to the panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.add(addButton);
         buttonPanel.add(editButton);
         buttonPanel.add(deleteButton);
 
-        // Add the button panel to the south of the main panel
-        add(buttonPanel, BorderLayout.SOUTH);
+        // Combined Search and Button Panel
+        JPanel searchAndCrudPanel = new JPanel(new BorderLayout());
+        searchAndCrudPanel.add(searchPanel, BorderLayout.WEST);
+        searchAndCrudPanel.add(buttonPanel, BorderLayout.EAST);
+
+        // North Panel with Title and Search/CRUD Panel
+        JPanel northPanel = new JPanel(new BorderLayout());
+        northPanel.add(titleLabel, BorderLayout.NORTH);
+        northPanel.add(searchAndCrudPanel, BorderLayout.SOUTH);
+
+        // Main Panel Layout Adjustments
+        add(northPanel, BorderLayout.NORTH);
+        add(scrollPane, BorderLayout.CENTER);
+
+        // Button Actions
+        configureButtonActions();
+
+        // Load Initial Data
         loadInstruments();
+    }
+
+    private void configureButtonActions() {
+        addButton.addActionListener(e -> addInstrumentDialog());
+        editButton.addActionListener(e -> {
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow >= 0) {
+                editInstrumentDialog(selectedRow);
+            } else {
+                JOptionPane.showMessageDialog(null, "Please select an instrument to edit.");
+            }
+        });
+        deleteButton.addActionListener(e -> {
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow >= 0) {
+                deleteInstrument(selectedRow);
+            } else {
+                JOptionPane.showMessageDialog(null, "Please select an instrument to delete.");
+            }
+        });
+        searchButton.addActionListener(e -> 
+        {
+        String searchQuery = searchField.getText().trim();
+        boolean searchByName = nameCheckBox.isSelected();
+        boolean searchByKey = keyCheckBox.isSelected();
+        searchInstruments(searchQuery, searchByName, searchByKey);
+    }
+        );
     }
 
     private void addInstrumentDialog() {
@@ -228,13 +241,15 @@ public class InstrumentPanel extends JPanel {
         //columnModel.removeColumn(idColumn);    
         }
 
-    private void SearchInstruments(String searchQuery) {
-        // Clear the existing data in the table model.
+        private void searchInstruments(String searchQuery, boolean searchByName, boolean searchByKey) {
+            // Clear the existing data in the table model.
         tableModel.setRowCount(0);
     
         // Retrieve instruments based on the search query. This can be a list or a single instrument.
         // Assuming we are searching by name here, but you could add logic to determine the type of search.
-        List<Instrument> searchResults  = instrumentService.SearchInstruments(searchQuery);
+        List<Instrument> searchResults = instrumentService.searchInstruments(searchQuery, searchByName, searchByKey);
+        
+        
     
         if(searchResults.isEmpty())
 {

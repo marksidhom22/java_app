@@ -2,15 +2,19 @@ package PresentationLayer;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 
-import BusinessLogicLayer.InstrumentService;
 import BusinessLogicLayer.MusicianService;
+import BusinessLogicLayer.InstrumentService;
+import DataAccessLayer.Musician;
+import DataAccessLayer.Instrument;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.List;
-import DataAccessLayer.*;
 
 public class MusicianPanel extends JPanel {
     private JTable table;
@@ -18,91 +22,111 @@ public class MusicianPanel extends JPanel {
     private JButton editButton;
     private JButton deleteButton;
     private DefaultTableModel tableModel;
+    private MusicianService musicianService;
+    private InstrumentService instrumentService;
     private JTextField searchField;
     private JButton searchButton;
-    private MusicianService musicianService;
-    private InstrumentService instrumentservice;
 
+    private JCheckBox ssnCheckBox, nameCheckBox, instrumentCheckBox, addressCheckBox, phoneCheckBox;
 
-    public MusicianPanel() { 
+    
+    public MusicianPanel() {
+        // Title label
+        JLabel titleLabel = new JLabel("Musician Management System");
+        titleLabel.setFont(new Font("Serif", Font.BOLD, 24));
+        titleLabel.setHorizontalAlignment(JLabel.CENTER);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // Musician and Instrument Services
         musicianService = new MusicianService();
-        instrumentservice = new InstrumentService();
-        setLayout(new BorderLayout());
+        instrumentService = new InstrumentService();
+
+        // Search Panel
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         searchField = new JTextField(20);
         searchButton = new JButton("Search");
+        ssnCheckBox = new JCheckBox("SSN");
+        nameCheckBox = new JCheckBox("Name");
+        instrumentCheckBox = new JCheckBox("Instrument Name");
+        addressCheckBox = new JCheckBox("Address");
+        phoneCheckBox = new JCheckBox("Phone Number");
+        ssnCheckBox.setSelected(true);
+        nameCheckBox.setSelected(true);
+        instrumentCheckBox.setSelected(true);
+        addressCheckBox.setSelected(true);
+        phoneCheckBox.setSelected(true);
 
-        // Table model for musician details
+        searchPanel.add(Box.createRigidArea(new Dimension(5, 0)));
+        searchPanel.add(searchField);
+        searchPanel.add(Box.createRigidArea(new Dimension(5, 0)));
+        searchPanel.add(searchButton);
+        searchPanel.add(searchField);
+        searchPanel.add(searchButton);
+        searchPanel.add(ssnCheckBox);
+        searchPanel.add(nameCheckBox);
+        searchPanel.add(instrumentCheckBox);
+        searchPanel.add(addressCheckBox);
+        searchPanel.add(phoneCheckBox);
+
+        // Layout
+        setLayout(new BorderLayout());
+
+        // Table Model
         tableModel = new DefaultTableModel(new Object[]{"SSN", "Name", "Instrument Name", "Address", "Phone Number"}, 0);
         table = new JTable(tableModel);
 
-        // Scroll pane for the table
+        // Scroll Pane
         JScrollPane scrollPane = new JScrollPane(table);
-        add(scrollPane, BorderLayout.CENTER);
 
-        // Button panel
-        JPanel buttonPanel = new JPanel();
+        // Button Panel
         addButton = new JButton("Add");
         editButton = new JButton("Edit");
         deleteButton = new JButton("Delete");
-
-        // Add action listeners for the buttons
-        addButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                addMusicianDialog();
-            }
-        });
-
-        editButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int selectedRow = table.getSelectedRow();
-                if (selectedRow >= 0) {
-                    editMusicianDialog(selectedRow);
-                } else {
-                    JOptionPane.showMessageDialog(null, "Please select a musician to edit.");
-                }
-            }
-        });
-
-        deleteButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int selectedRow = table.getSelectedRow();
-                if (selectedRow >= 0) {
-                    deleteMusician(selectedRow);
-                } else {
-                    JOptionPane.showMessageDialog(null, "Please select a musician to delete.");
-                }
-            }
-        });
-
-        // Search panel for the search field and button
-        JPanel searchPanel = new JPanel();
-        searchPanel.add(new JLabel("Search:"));
-        searchPanel.add(searchField);
-        searchPanel.add(searchButton);
-
-        searchButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String searchQuery = searchField.getText().trim();
-                searchMusicians(searchQuery);
-            }
-        });
-
-        // Add the search panel to the main panel, for example, at the top
-        add(searchPanel, BorderLayout.NORTH);
-
-        // Add buttons to the button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.add(addButton);
         buttonPanel.add(editButton);
         buttonPanel.add(deleteButton);
 
-        // Add the button panel to the south of this panel
-        add(buttonPanel, BorderLayout.SOUTH);
+        // Combined Search and Button Panel
+        JPanel searchAndCrudPanel = new JPanel(new BorderLayout());
+        searchAndCrudPanel.add(searchPanel, BorderLayout.WEST);
+        searchAndCrudPanel.add(buttonPanel, BorderLayout.EAST);
 
+        // North Panel with Title and Search/CRUD Panel
+        JPanel northPanel = new JPanel(new BorderLayout());
+        northPanel.add(titleLabel, BorderLayout.NORTH);
+        northPanel.add(searchAndCrudPanel, BorderLayout.SOUTH);
+
+        // Main Panel Layout Adjustments
+        add(northPanel, BorderLayout.NORTH);
+        add(scrollPane, BorderLayout.CENTER);
+
+        // Button Actions
+        configureButtonActions();
+
+        // Load Initial Data
         loadMusicians();
+    }
+
+    private void configureButtonActions() {
+        addButton.addActionListener(e -> addMusicianDialog());
+        editButton.addActionListener(e -> {
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow >= 0) {
+                editMusicianDialog(selectedRow);
+            } else {
+                JOptionPane.showMessageDialog(null, "Please select a musician to edit.");
+            }
+        });
+        deleteButton.addActionListener(e -> {
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow >= 0) {
+                deleteMusician(selectedRow);
+            } else {
+                JOptionPane.showMessageDialog(null, "Please select a musician to delete.");
+            }
+        });
+        searchButton.addActionListener(e -> searchMusicians(searchField.getText().trim()));
     }
 
     private void loadMusicians() {
@@ -124,7 +148,7 @@ public class MusicianPanel extends JPanel {
 
     private void addMusicianDialog() {
         JComboBox<String> instrumentComboBox = new JComboBox<>();
-        List<Instrument> instruments = instrumentservice.listAllInstruments(); // Use service to get instruments
+        List<Instrument> instruments = instrumentService.listAllInstruments(); // Use service to get instruments
         for (Instrument instrument : instruments) {
             instrumentComboBox.addItem(instrument.getName()); // Assuming Instrument has a getName() method
         }
@@ -152,7 +176,7 @@ public class MusicianPanel extends JPanel {
                     nameField.getText(),
                     addressField.getText(),
                     phoneNumberField.getText(),
-                    instrumentservice.findInstrumentByName(selectedInstrumentName).getInstrId(),
+                    instrumentService.findInstrumentByName(selectedInstrumentName).getInstrId(),
                     selectedInstrumentName
             );
             if ( musicianService.addMusician(newMusician)==false)
@@ -166,7 +190,7 @@ public class MusicianPanel extends JPanel {
 
     private void addMusicianDialog(Musician newMusician) {
         JComboBox<String> instrumentComboBox = new JComboBox<>();
-        List<Instrument> instruments = instrumentservice.listAllInstruments(); // Use service to get instruments
+        List<Instrument> instruments = instrumentService.listAllInstruments(); // Use service to get instruments
         for (Instrument instrument : instruments) {
             instrumentComboBox.addItem(instrument.getName()); // Assuming Instrument has a getName() method
         }
@@ -201,7 +225,7 @@ public class MusicianPanel extends JPanel {
                     nameField.getText(),
                     addressField.getText(),
                     phoneNumberField.getText(),
-                    instrumentservice.findInstrumentByName(selectedInstrumentName).getInstrId(),
+                    instrumentService.findInstrumentByName(selectedInstrumentName).getInstrId(),
                     selectedInstrumentName
             );
             if ( musicianService.addMusician(newMusician)==false)
@@ -218,7 +242,7 @@ public class MusicianPanel extends JPanel {
     private void editMusicianDialog(int rowIndex) {
         
         JComboBox<String> instrumentComboBox = new JComboBox<>();
-        List<Instrument> instruments = instrumentservice.listAllInstruments(); // Use service to get instruments
+        List<Instrument> instruments = instrumentService.listAllInstruments(); // Use service to get instruments
         for (Instrument instrument : instruments) {
             instrumentComboBox.addItem(instrument.getName()); // Assuming Instrument has a getName() method
         }
@@ -230,7 +254,7 @@ public class MusicianPanel extends JPanel {
         JTextField nameField = new JTextField(musician.getName());
         JTextField addressField = new JTextField(musician.getAddress());
         JTextField phoneNumberField = new JTextField(musician.getPhoneNumber());
-        String instr_name=instrumentservice.findInstrumentById(musician.getIntsrument_id()).getName();
+        String instr_name=instrumentService.findInstrumentById(musician.getIntsrument_id()).getName();
         
         Object[] message = {
             "SSN (cannot be changed):", ssn,
@@ -268,8 +292,14 @@ public class MusicianPanel extends JPanel {
     }
 
     private void searchMusicians(String query) {
-        List<Musician> searchResults = musicianService.searchMusicians(query);
-        tableModel.setRowCount(0); // Clear the table first
+        boolean searchSSN = ssnCheckBox.isSelected();
+        boolean searchName = nameCheckBox.isSelected();
+        boolean searchInstrument = instrumentCheckBox.isSelected();
+        boolean searchAddress = addressCheckBox.isSelected();
+        boolean searchPhone = phoneCheckBox.isSelected();
+
+        List<Musician> searchResults = musicianService.searchMusicians(query, searchSSN, searchName, searchInstrument, searchAddress, searchPhone);
+        tableModel.setRowCount(0);
         for (Musician musician : searchResults) {
             Object[] rowData = {
                 musician.getSsn(),
@@ -281,6 +311,7 @@ public class MusicianPanel extends JPanel {
             tableModel.addRow(rowData);
         }
     }
+
 
     // Other methods and class members...
 }

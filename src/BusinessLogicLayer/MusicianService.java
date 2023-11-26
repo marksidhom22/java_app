@@ -94,17 +94,32 @@ public class MusicianService implements IMusicianService {
     
 
 
-    public List<Musician> searchMusicians(String searchQuery) {
-        // Get all musicians
-        List<Musician> allMusicians = listAllMusicians();
-        
-        // Filter musicians based on the search query
+    public List<Musician> searchMusicians(String searchQuery, boolean searchSSN, boolean searchName, boolean searchInstrument, boolean searchAddress, boolean searchPhone) {
+        List<Musician> allMusicians = listAllMusicians(); // Assuming this method fetches all musicians
+
         return allMusicians.stream()
-                           .filter(musician -> musician.getName().toLowerCase().contains(searchQuery.toLowerCase())
-                                    // || musician.getInstrument().toLowerCase().contains(searchQuery.toLowerCase())
-                                    )
+                           .filter(musician -> {
+                               boolean matchesQuery = false;
+                               if (searchSSN && musician.getSsn().toLowerCase().contains(searchQuery.toLowerCase())) {
+                                   matchesQuery = true;
+                               }
+                               if (searchName && musician.getName().toLowerCase().contains(searchQuery.toLowerCase())) {
+                                   matchesQuery = true;
+                               }
+                               if (searchInstrument && musician.getIntsrument_name().toLowerCase().contains(searchQuery.toLowerCase())) {
+                                   matchesQuery = true;
+                               }
+                               if (searchAddress && musician.getAddress().toLowerCase().contains(searchQuery.toLowerCase())) {
+                                   matchesQuery = true;
+                               }
+                               if (searchPhone && musician.getPhoneNumber().contains(searchQuery)) {
+                                   matchesQuery = true;
+                               }
+                               return matchesQuery;
+                           })
                            .collect(Collectors.toList());
     }
+
 
     public void deleteMusicianById(String id) {
         // Implement the logic to delete a musician by ID, using the appropriate DAO method

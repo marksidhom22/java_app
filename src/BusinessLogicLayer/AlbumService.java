@@ -47,11 +47,28 @@ public class AlbumService implements IAlbumService {
         albumDao.deleteAlbum(albumId);
     }
 
-    public List<Album> searchAlbums(String searchQuery) {
-        // Assuming you have a collection of albums stored, e.g., List<Album> albums;
+    public List<Album> searchAlbums(String searchQuery, boolean searchAlbumId, boolean searchTitle, boolean searchCopyrightDate, boolean searchSpeed, boolean searchProducerName) {
         return listAllAlbums().stream()
-                     .filter(album -> album.toString().toLowerCase().contains(searchQuery.toLowerCase()))
-                     .collect(Collectors.toList());
+                    .filter(album -> {
+                        boolean matchesQuery = false;
+                        if (searchAlbumId && String.valueOf(album.getAlbumIdentifier()).contains(searchQuery)) {
+                            matchesQuery = true;
+                        }
+                        if (searchTitle && album.getTitle().toLowerCase().contains(searchQuery.toLowerCase())) {
+                            matchesQuery = true;
+                        }
+                        if (searchCopyrightDate && album.getCopyrightDate().toString().contains(searchQuery)) {
+                            matchesQuery = true;
+                        }
+                        if (searchSpeed && album.getSpeed().toLowerCase().contains(searchQuery.toLowerCase())) {
+                            matchesQuery = true;
+                        }
+                        // if (searchProducerName && getProducerNameById(album.getProducerId()).toLowerCase().contains(searchQuery.toLowerCase())) {
+                        //     matchesQuery = true;
+                        // }
+                        return matchesQuery;
+                    })
+                    .collect(Collectors.toList());
     }
 
     
