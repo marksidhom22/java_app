@@ -46,7 +46,7 @@ public class ProducerDAO {
      */
     public List<Producer> getAllProducers() {
         List<Producer> producers = new ArrayList<>();
-        final String query = "SELECT * FROM musicians";
+        final String query = "SELECT * FROM musicians ORDER BY musicians.name";
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {

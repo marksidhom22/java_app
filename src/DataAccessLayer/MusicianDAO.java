@@ -30,7 +30,7 @@ public class MusicianDAO {
                              "FROM notownrecords.musicians m " +
                              "JOIN lives l ON m.ssn = l.ssn " +
                              "JOIN plays p ON m.ssn = p.ssn " +
-                             "WHERE m.ssn = ?";
+                             "WHERE m.ssn = ? ORDER BY m.name";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
@@ -66,7 +66,7 @@ public class MusicianDAO {
                              "FROM notownrecords.musicians m " +
                              "JOIN lives l ON m.ssn = l.ssn " +
                              "JOIN plays p ON m.ssn = p.ssn " +
-                             "WHERE m.ssn = ?";
+                             "WHERE m.ssn = ? ORDER BY m.name";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
             
@@ -329,7 +329,7 @@ public class MusicianDAO {
 			  final String query = "SELECT m.ssn, m.name, l.phone, l.address, p.instrId " +
 			  "FROM notownrecords.musicians m " +
 			  "JOIN lives l ON m.ssn = l.ssn " +
-			  "JOIN plays p ON m.ssn = p.ssn";
+			  "JOIN plays p ON m.ssn = p.ssn ORDER BY m.name";
             
     	    try (Connection conn = DatabaseConnection.getConnection();
     	         Statement stmt = conn.createStatement();

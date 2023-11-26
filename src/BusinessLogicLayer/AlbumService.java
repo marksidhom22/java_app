@@ -42,9 +42,9 @@ public class AlbumService implements IAlbumService {
     }
 
     @Override
-    public void deleteAlbumById(int albumId) {
+    public boolean deleteAlbumById(int albumId) {
         // Logic to delete an album by its ID using AlbumDAO
-        albumDao.deleteAlbum(albumId);
+        return albumDao.deleteAlbum(albumId);
     }
 
     public List<Album> searchAlbums(String searchQuery, boolean searchAlbumId, boolean searchTitle, boolean searchCopyrightDate, boolean searchSpeed, boolean searchProducerName) {

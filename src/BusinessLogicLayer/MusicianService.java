@@ -61,9 +61,9 @@ public class MusicianService implements IMusicianService {
     
 
     @Override
-    public void deleteMusicianBySSN(String ssn) {
+    public boolean deleteMusicianBySSN(String ssn) {
         // Logic to delete a musician by SSN using the MusicianDAO
-        musicianDao.deleteMusician(ssn);
+        return musicianDao.deleteMusician(ssn);
     }
 
     @Override

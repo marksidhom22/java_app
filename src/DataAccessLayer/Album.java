@@ -3,9 +3,10 @@ package DataAccessLayer;
 import java.io.Serializable;
 import java.util.Date;
 
-/**
- * Album DTO class to represent the ALBUM_PRODUCER entity from the database.
- */
+
+
+
+
 public class Album implements Serializable {
 
     private int albumIdentifier;

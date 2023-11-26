@@ -1,5 +1,10 @@
 package PresentationLayer;
 
+
+import java.util.UUID;
+
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseListener;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
@@ -28,6 +33,9 @@ import java.util.Locale;
 import org.jdatepicker.impl.JDatePanelImpl;
 import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
+// import org.w3c.dom.events.MouseEvent;
+import java.awt.event.MouseEvent;
+
 import java.util.Properties;
 
 
@@ -46,7 +54,7 @@ public class AlbumPanel extends JPanel {
 
     public AlbumPanel() {
         // Title Label
-        JLabel titleLabel = new JLabel("Album Management System");
+        JLabel titleLabel = new JLabel("Album");
         titleLabel.setFont(new Font("Serif", Font.BOLD, 24));
         titleLabel.setHorizontalAlignment(JLabel.CENTER);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -91,7 +99,13 @@ public class AlbumPanel extends JPanel {
 
         // Table Model
         tableModel = new DefaultTableModel(new Object[]{"Album ID", "Title", "Copyright Date", "Speed", "Producer Name"}, 0);
-        table = new JTable(tableModel);
+        table = new JTable(tableModel) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Make all cells non-editable
+            }
+        };
+
 
         // Scroll Pane
         JScrollPane scrollPane = new JScrollPane(table);
@@ -127,6 +141,25 @@ public class AlbumPanel extends JPanel {
     }
 
     private void configureButtonActions() {
+
+
+        table.addMouseListener(new MouseAdapter() {
+    public void mouseClicked(MouseEvent e) {
+        if (e.getClickCount() == 2) { // Check for double click
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow >= 0) {
+                try {
+                    editAlbumDialog(selectedRow); // Call your existing method to edit
+                } catch (ParseException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        }
+    }
+});
+
+
+
         addButton.addActionListener(e -> addAlbumDialog());
         editButton.addActionListener(e -> {
             int selectedRow = table.getSelectedRow();
@@ -149,14 +182,25 @@ public class AlbumPanel extends JPanel {
             }
         });
         searchButton.addActionListener(e -> searchAlbums(searchField.getText().trim()));
+        searchField.addActionListener(e -> searchAlbums(searchField.getText().trim()));
+
+
+
+        
     }
 
     
 
   
     private void addAlbumDialog() {
+        // Generate a unique ID with a prefix and limited characters
+        int uniqueId = generateIntegerIdFromUUID();
+
+
+
         // Fields for album details
         JTextField albumIdField = new JTextField();
+        albumIdField.setText(String.valueOf(uniqueId));
         JTextField titleField = new JTextField();
     
         // Properties for JDatePicker
@@ -304,12 +348,17 @@ public class AlbumPanel extends JPanel {
         String producer_name = (String) tableModel.getValueAt(rowIndex, 4);
     
         // Show dialog to edit the album details
+        JTextField albumIdField = new JTextField(Integer.toString(albumId));
+        albumIdField.setEditable(false);
+        albumIdField.setBackground(Color.LIGHT_GRAY);
+
         JTextField titleField = new JTextField(title);
         JTextField copyrightField = new JTextField(copyrightDate.toString());
         // JTextField speedField = new JTextField(Integer.toString(speed));
         JTextField speedField = new JTextField(speed);
 
         Object[] message = {
+            "Album ID", albumIdField,
             "Title:", titleField,
             "Copyright Date (YYYY-MM-DD):", copyrightField,
             "Speed:", speedField,
@@ -320,6 +369,7 @@ public class AlbumPanel extends JPanel {
         if (option == JOptionPane.OK_OPTION) {
     
             try {
+
                 // Validate and parse the input data
                 String title_new = titleField.getText().trim();
     
@@ -378,13 +428,38 @@ public class AlbumPanel extends JPanel {
         if (confirm == JOptionPane.YES_OPTION) {
             
             int albumId = (Integer) tableModel.getValueAt(rowIndex, 0);
-            albumService.deleteAlbumById(albumId); // Delete the album from the database
-            tableModel.removeRow(rowIndex); // Remove the album from the table model
+            // albumService.deleteAlbumById(albumId); // Delete the album from the database
+            // tableModel.removeRow(rowIndex); // Remove the album from the table model
+
+                try {
+                    // Attempt to delete the musician
+                    if (albumService.deleteAlbumById(albumId))
+                    loadAlbums(); // Reload the musicians after deletion
+                    else
+                    {
+                    loadAlbums(); // Reload the musicians after deletion
+    
+                    // If an exception occurs, show an error dialog
+                    JOptionPane.showMessageDialog(this, 
+                        "Error occurred while deleting the Album: There are songs in this Album " ,
+                        "Error", 
+                        JOptionPane.ERROR_MESSAGE);
+                    }
+                } catch (Exception e) {
+                    // If an exception occurs, show an error dialog
+                    JOptionPane.showMessageDialog(this, 
+                        "Error occurred while deleting the Album: " + e.getMessage(),
+                        "Error", 
+                        JOptionPane.ERROR_MESSAGE);
+                }
+
+
         }  
     }
 
 
-        private void loadAlbums() {
+        public void loadAlbums() {
+            tableModel.setRowCount(0);
             List<Album> albums = albumService.listAllAlbums();
             for (Album album : albums) {
                 Object[] rowData = {
@@ -415,7 +490,12 @@ public class AlbumPanel extends JPanel {
         boolean searchProducerName = producerNameCheckBox.isSelected();
 
         List<Album> searchResults = albumService.searchAlbums(searchQuery, searchAlbumId, searchTitle, true, searchSpeed, searchProducerName);
-
+    
+        if(searchResults.isEmpty())
+{
+            // If no Album found, you can show a message or just leave the table empty.
+            JOptionPane.showMessageDialog(this, "No Album found with the given search criteria.", "Search", JOptionPane.INFORMATION_MESSAGE);
+        }
         tableModel.setRowCount(0);
         for (Album album : searchResults) {
             Object[] rowData = {
@@ -429,5 +509,12 @@ public class AlbumPanel extends JPanel {
         }
     }
 
+    private int generateIntegerIdFromUUID() {
+        // Generate a UUID
+        UUID rawUuid = UUID.randomUUID();
     
+        // Get the least significant bits of the UUID and convert them to an integer
+        long leastSignificantBits = rawUuid.getLeastSignificantBits();
+        return (int) (leastSignificantBits & 0xffffffff);
+    }
 }

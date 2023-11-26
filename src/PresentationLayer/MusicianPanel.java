@@ -1,18 +1,24 @@
 package PresentationLayer;
 
+import java.util.UUID;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
+// import org.w3c.dom.events.MouseEvent;
+
 import BusinessLogicLayer.MusicianService;
 import BusinessLogicLayer.InstrumentService;
 import DataAccessLayer.Musician;
 import DataAccessLayer.Instrument;
-
+import java.awt.event.MouseAdapter;
+// import org.w3c.dom.events.MouseEvent;
+import java.awt.event.MouseEvent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +38,7 @@ public class MusicianPanel extends JPanel {
     
     public MusicianPanel() {
         // Title label
-        JLabel titleLabel = new JLabel("Musician Management System");
+        JLabel titleLabel = new JLabel("Musician");
         titleLabel.setFont(new Font("Serif", Font.BOLD, 24));
         titleLabel.setHorizontalAlignment(JLabel.CENTER);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -84,8 +90,12 @@ public class MusicianPanel extends JPanel {
 
         // Table Model
         tableModel = new DefaultTableModel(new Object[]{"SSN", "Name", "Instrument Name", "Address", "Phone Number"}, 0);
-        table = new JTable(tableModel);
-
+        table = new JTable(tableModel) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Make all cells non-editable
+            }
+        };
         // Scroll Pane
         JScrollPane scrollPane = new JScrollPane(table);
 
@@ -138,9 +148,30 @@ public class MusicianPanel extends JPanel {
             }
         });
         searchButton.addActionListener(e -> searchMusicians(searchField.getText().trim()));
+        searchField.addActionListener(e -> searchMusicians(searchField.getText().trim()));
+
+
+        table.addMouseListener(new MouseAdapter() {
+    public void mouseClicked(MouseEvent e) {
+        if (e.getClickCount() == 2) { // Check for double click
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow >= 0) {
+                try {
+                    editMusicianDialog(selectedRow); // Call your existing method to edit
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+            }
+        }
+    }
+});
+
+
     }
 
-    private void loadMusicians() {
+    public void loadMusicians() {
+        tableModel.setRowCount(0);
+
         List<Musician> musicians = musicianService.listAllMusicians();
         tableModel.setRowCount(0); // Clear the table first
         for (Musician musician : musicians) {
@@ -158,6 +189,7 @@ public class MusicianPanel extends JPanel {
 
 
     private void addMusicianDialog() {
+
         JComboBox<String> instrumentComboBox = new JComboBox<>();
         List<Instrument> instruments = instrumentService.listAllInstruments(); // Use service to get instruments
         for (Instrument instrument : instruments) {
@@ -262,13 +294,19 @@ public class MusicianPanel extends JPanel {
         // Get the current data
         String ssn = (String) tableModel.getValueAt(rowIndex, 0);
         Musician musician = musicianService.findMusicianBySSN(ssn);
+
+
+        JTextField ssnField = new JTextField(ssn);
+        ssnField.setEditable(false);
+        ssnField.setBackground(Color.LIGHT_GRAY);
+
         JTextField nameField = new JTextField(musician.getName());
         JTextField addressField = new JTextField(musician.getAddress());
         JTextField phoneNumberField = new JTextField(musician.getPhoneNumber());
         String instr_name=instrumentService.findInstrumentById(musician.getIntsrument_id()).getName();
         
         Object[] message = {
-            "SSN (cannot be changed):", ssn,
+            "SSN:", ssnField,
             "Name:", nameField,
             "Instrument:", instrumentComboBox,
             "Address:", addressField,
@@ -295,13 +333,32 @@ public class MusicianPanel extends JPanel {
                 "Are you sure you want to delete this musician?",
                 "Delete Musician",
                 JOptionPane.YES_NO_OPTION);
-
+    
         if (confirmation == JOptionPane.YES_OPTION) {
-            musicianService.deleteMusicianBySSN(ssn);
-            loadMusicians(); // Reload the musicians after deletion
+            try {
+                // Attempt to delete the musician
+                if (musicianService.deleteMusicianBySSN(ssn))
+                loadMusicians(); // Reload the musicians after deletion
+                else
+                {
+                loadMusicians(); // Reload the musicians after deletion
+
+                // If an exception occurs, show an error dialog
+                JOptionPane.showMessageDialog(this, 
+                    "Error occurred while deleting the musician: " ,
+                    "Error", 
+                    JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (Exception e) {
+                // If an exception occurs, show an error dialog
+                JOptionPane.showMessageDialog(this, 
+                    "Error occurred while deleting the musician: " + e.getMessage(),
+                    "Error", 
+                    JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
-
+    
     private void searchMusicians(String query) {
         boolean searchSSN = ssnCheckBox.isSelected();
         boolean searchName = nameCheckBox.isSelected();
@@ -310,6 +367,14 @@ public class MusicianPanel extends JPanel {
         boolean searchPhone = phoneCheckBox.isSelected();
 
         List<Musician> searchResults = musicianService.searchMusicians(query, searchSSN, searchName, searchInstrument, searchAddress, searchPhone);
+
+            
+        if(searchResults.isEmpty())
+{
+            // If no instrument found, you can show a message or just leave the table empty.
+            JOptionPane.showMessageDialog(this, "No Musician found with the given search criteria.", "Search", JOptionPane.INFORMATION_MESSAGE);
+        }
+
         tableModel.setRowCount(0);
         for (Musician musician : searchResults) {
             Object[] rowData = {

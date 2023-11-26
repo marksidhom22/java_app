@@ -1,14 +1,19 @@
 package PresentationLayer;
 
+import java.util.UUID;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
+import java.awt.event.MouseAdapter;
+// import org.w3c.dom.events.MouseEvent;
+import java.awt.event.MouseEvent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.ParseException;
 
 import BusinessLogicLayer.AlbumService;
 import BusinessLogicLayer.SongService;
@@ -17,6 +22,7 @@ import DataAccessLayer.Song;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class SongPanel extends JPanel {
     private JTable table;
@@ -35,7 +41,7 @@ public class SongPanel extends JPanel {
     
     public SongPanel() {
         // Create a title label
-        JLabel titleLabel = new JLabel("Song Management System");
+        JLabel titleLabel = new JLabel("Song");
         titleLabel.setFont(new Font("Serif", Font.BOLD, 24)); // Example font setting
         titleLabel.setHorizontalAlignment(JLabel.CENTER);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Adds padding around the title
@@ -57,9 +63,9 @@ public class SongPanel extends JPanel {
         searchButton = new JButton("Search");
         authorCheckBox = new JCheckBox("Author");
         authorCheckBox.setSelected(true);
-        titleCheckBox = new JCheckBox("Title");
+        titleCheckBox = new JCheckBox("Song Title");
         titleCheckBox.setSelected(true);
-        albumIdCheckBox = new JCheckBox("Album ID");
+        albumIdCheckBox = new JCheckBox("Album Title");
         albumIdCheckBox.setSelected(true);
 
         // searchPanel.setLayout(new BoxLayout(searchPanel, BoxLayout.LINE_AXIS));
@@ -81,9 +87,13 @@ public class SongPanel extends JPanel {
 
 
         // Initialize the table model and set up the columns
-        tableModel = new DefaultTableModel(new Object[]{"Song ID", "Author", "Title", "Album ID"}, 0);
-        table = new JTable(tableModel);
-
+        tableModel = new DefaultTableModel(new Object[]{"Song ID", "Author", "Song Title", "Album Title"}, 0);
+        table = new JTable(tableModel) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Make all cells non-editable
+            }
+        };
         // Scroll pane for table which allows it to be scrollable
         JScrollPane scrollPane = new JScrollPane(table);
         // add(scrollPane, BorderLayout.CENTER);
@@ -157,12 +167,43 @@ public class SongPanel extends JPanel {
             }
         });
 
+        searchField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String searchQuery = searchField.getText().trim();
+                boolean searchAuthor = authorCheckBox.isSelected();
+                boolean searchTitle = titleCheckBox.isSelected();
+                boolean searchAlbumId = albumIdCheckBox.isSelected();
+                SearchSongs(searchQuery, searchAuthor, searchTitle, searchAlbumId);
+
+            }
+        });
+
+
+        table.addMouseListener(new MouseAdapter() {
+    public void mouseClicked(MouseEvent e) {
+        if (e.getClickCount() == 2) { // Check for double click
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow >= 0) {
+                try {
+                    editSongDialog(selectedRow); // Call your existing method to edit
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+            }
+        }
+    }
+});
         loadSongs();
 
     }
 
     private void addSongDialog() {
+        // Generate a unique ID
+        int uniqueId = generateIntegerIdFromUUID();
+
         JTextField idField = new JTextField();
+        idField.setText(String.valueOf( uniqueId));
         JTextField authorField = new JTextField();
         JTextField titleField = new JTextField();
         // JTextField albumIdField = new JTextField();
@@ -248,6 +289,8 @@ public class SongPanel extends JPanel {
 
         JTextField idField = new JTextField(id);
         idField.setEditable(false);
+        idField.setBackground(Color.LIGHT_GRAY);
+
         JTextField authorField = new JTextField(author);
         JTextField titleField = new JTextField(title);
         JTextField albumIdField = new JTextField(albumId);
@@ -370,6 +413,14 @@ public class SongPanel extends JPanel {
         // Fetch the search results from the AlbumService
         List<Song> searchResults = songService.SearchSongs(searchQuery, searchAuthor, searchTitle, searchAlbumId);
 
+
+    
+        if(searchResults.isEmpty())
+{
+            // If no instrument found, you can show a message or just leave the table empty.
+            JOptionPane.showMessageDialog(this, "No Songs found with the given search criteria.", "Search", JOptionPane.INFORMATION_MESSAGE);
+        }
+
         // Populate the table with the search results
         for (Song song : searchResults) {
             Object[] rowData = {
@@ -383,7 +434,14 @@ public class SongPanel extends JPanel {
     }
 
 
-
+    private int generateIntegerIdFromUUID() {
+        // Generate a UUID
+        UUID rawUuid = UUID.randomUUID();
+    
+        // Get the least significant bits of the UUID and convert them to an integer
+        long leastSignificantBits = rawUuid.getLeastSignificantBits();
+        return (int) (leastSignificantBits & 0xffffffff);
+    }
     
 
 }

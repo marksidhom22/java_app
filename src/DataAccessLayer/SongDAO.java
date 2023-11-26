@@ -50,7 +50,7 @@ public class SongDAO {
         final String query = "SELECT Songs_Appears.songId ,"
         		+ "songs.author ,songs.title,Songs_Appears.albumIdentifier"
         		+ "  FROM Songs_Appears join songs "
-        		+ "on Songs_Appears.songId =songs.songId ;\r\n"
+        		+ "on Songs_Appears.songId =songs.songId ORDER BY songs.title ;\r\n"
         		+ "";
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();

@@ -41,8 +41,9 @@ public interface IAlbumService {
      * Deletes an album from the database using its ID.
      *
      * @param albumId the unique ID of the album to be deleted
+     * @return 
      */
-    void deleteAlbumById(int albumId);
+    boolean deleteAlbumById(int albumId);
 
     // Additional methods for album-related operations can be added here.
 }

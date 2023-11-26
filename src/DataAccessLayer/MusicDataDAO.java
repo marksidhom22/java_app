@@ -13,7 +13,7 @@ public class MusicDataDAO {
         		+ "join perform p  on p.ssn  =m.ssn \r\n"
         		+ "JOIN songs s on s.songId =p.songId \r\n"
         		+ "JOIN songs_appears sa ON p.songId  = sa.songId \r\n"
-        		+ "JOIN album_producer ap ON ap.albumIdentifier  = sa.albumIdentifier ; ";
+        		+ "JOIN album_producer ap ON ap.albumIdentifier  = sa.albumIdentifier ORDER BY m.name; ";
 
         try (Connection conn = DatabaseConnection.getConnection();
                      Statement stmt = conn.createStatement();
@@ -38,7 +38,7 @@ public class MusicDataDAO {
         		+ "JOIN songs s on s.songId =p.songId \r\n"
         		+ "JOIN songs_appears sa ON p.songId  = sa.songId \r\n"
         		+ "JOIN album_producer ap ON ap.albumIdentifier  = sa.albumIdentifier " +
-                     "WHERE m.name LIKE ? OR s.title LIKE ? OR ap.title LIKE ?";
+                     "WHERE m.name LIKE ? OR s.title LIKE ? OR ap.title LIKE ? ORDER BY m.name";
 
                      try (Connection conn = DatabaseConnection.getConnection();
                      PreparedStatement pstmt = conn.prepareStatement(sql)) {

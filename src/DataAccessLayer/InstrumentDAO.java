@@ -19,7 +19,7 @@ public class InstrumentDAO {
      * @return The Instrument object, or null if not found.
      */
     public Instrument getInstrumentById(String instrId) {
-        final String query = "SELECT * FROM Instruments WHERE instrId = ?";
+        final String query = "SELECT * FROM Instruments WHERE instrId = ? ORDER BY dname";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
             
@@ -40,7 +40,7 @@ public class InstrumentDAO {
     }
 
     public Instrument getInstrumentByName(String instrName) {
-        final String query = "SELECT * FROM Instruments WHERE dname = ?";
+        final String query = "SELECT * FROM Instruments WHERE dname = ? ORDER BY dname";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
             
@@ -69,7 +69,7 @@ public class InstrumentDAO {
      */
     public List<Instrument> getAllInstruments() {
         List<Instrument> instruments = new ArrayList<>();
-        final String query = "SELECT * FROM Instruments";
+        final String query = "SELECT * FROM Instruments ORDER BY dname";
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {

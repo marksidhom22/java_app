@@ -42,7 +42,7 @@ public interface IMusicianService {
      *
      * @param ssn the SSN of the musician to delete
      */
-    void deleteMusicianBySSN(String ssn);
+    boolean deleteMusicianBySSN(String ssn);
 
 	int checkAndResolvePhoneConflict(Musician musician);
 

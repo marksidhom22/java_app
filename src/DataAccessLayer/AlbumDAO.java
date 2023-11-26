@@ -19,7 +19,7 @@ public class AlbumDAO {
      * @return The Album object, or null if not found.
      */
     public Album getAlbumById(int albumIdentifier) {
-        final String query = "SELECT * FROM Album_Producer WHERE albumIdentifier = ?";
+        final String query = "SELECT * FROM Album_Producer WHERE albumIdentifier = ? ORDER BY title";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
             
@@ -49,7 +49,7 @@ public class AlbumDAO {
      */
     public List<Album> getAllAlbums() {
         List<Album> albums = new ArrayList<>();
-        final String query = "SELECT * FROM Album_Producer";
+        final String query = "SELECT * FROM Album_Producer ORDER BY title";
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {

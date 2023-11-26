@@ -1,16 +1,23 @@
 package PresentationLayer;
 
+import java.util.UUID;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
+
 import BusinessLogicLayer.InstrumentService;
 import DataAccessLayer.Instrument;
+import java.awt.event.MouseAdapter;
+// import org.w3c.dom.events.MouseEvent;
+import java.awt.event.MouseEvent;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.ParseException;
 import java.util.List;
 
 public class InstrumentPanel extends JPanel {
@@ -27,7 +34,7 @@ public class InstrumentPanel extends JPanel {
 
     public InstrumentPanel() {
         // Title Label
-        JLabel titleLabel = new JLabel("Instrument Management System");
+        JLabel titleLabel = new JLabel("Instrument");
         titleLabel.setFont(new Font("Serif", Font.BOLD, 24));
         titleLabel.setHorizontalAlignment(JLabel.CENTER);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -54,8 +61,12 @@ public class InstrumentPanel extends JPanel {
 
         // Table Model
         tableModel = new DefaultTableModel(new Object[]{"Instrument ID", "Name", "Instrument Key"}, 0);
-        table = new JTable(tableModel);
-
+        table = new JTable(tableModel) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Make all cells non-editable
+            }
+        };
         // Scroll Pane
         JScrollPane scrollPane = new JScrollPane(table);
 
@@ -115,10 +126,39 @@ public class InstrumentPanel extends JPanel {
         searchInstruments(searchQuery, searchByName, searchByKey);
     }
         );
+
+        searchField.addActionListener(e -> 
+        {
+        String searchQuery = searchField.getText().trim();
+        boolean searchByName = nameCheckBox.isSelected();
+        boolean searchByKey = keyCheckBox.isSelected();
+        searchInstruments(searchQuery, searchByName, searchByKey);
+    }
+        );
+
+
+        table.addMouseListener(new MouseAdapter() {
+    public void mouseClicked(MouseEvent e) {
+        if (e.getClickCount() == 2) { // Check for double click
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow >= 0) {
+                try {
+                    editInstrumentDialog(selectedRow); // Call your existing method to edit
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+            }
+        }
+    }
+});
     }
 
     private void addInstrumentDialog() {
+        int uniqueId = generateIntegerIdFromUUID();
+
+
         JTextField idField = new JTextField();
+        idField.setText(String.valueOf( uniqueId));
         JTextField nameField = new JTextField();
         JTextField typeField = new JTextField();
 
@@ -145,6 +185,8 @@ public class InstrumentPanel extends JPanel {
 
         JTextField idField = new JTextField(id);
         idField.setEditable(false);
+        idField.setBackground(Color.LIGHT_GRAY);
+
         JTextField nameField = new JTextField(name);
         JTextField typeField = new JTextField(type);
 
@@ -219,6 +261,9 @@ public class InstrumentPanel extends JPanel {
         if (success) {
             tableModel.removeRow(rowIndex);
         }
+        else {
+                JOptionPane.showMessageDialog(this, "Failed to delete the instrument. Some musicians are currently associated with this instrument.", "Deletion Error", JOptionPane.ERROR_MESSAGE);
+            }
     }
     
 
@@ -270,4 +315,15 @@ public class InstrumentPanel extends JPanel {
     }
     }
     
+
+private int generateIntegerIdFromUUID() {
+    // Generate a UUID
+    UUID rawUuid = UUID.randomUUID();
+
+    // Get the least significant bits of the UUID and convert them to an integer
+    long leastSignificantBits = rawUuid.getLeastSignificantBits();
+    return (int) (leastSignificantBits & 0xffffffff);
+}
+
+
 }
