@@ -42,9 +42,16 @@ public class MusicianPanel extends JPanel {
         instrumentService = new InstrumentService();
 
         // Search Panel
-        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel searchPanel = new JPanel();
+        searchPanel.setLayout(new BoxLayout(searchPanel, BoxLayout.Y_AXIS));
+
+        JPanel searchFieldPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         searchField = new JTextField(20);
         searchButton = new JButton("Search");
+        searchFieldPanel.add(searchField);
+        searchFieldPanel.add(searchButton);
+
+        JPanel checkBoxPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         ssnCheckBox = new JCheckBox("SSN");
         nameCheckBox = new JCheckBox("Name");
         instrumentCheckBox = new JCheckBox("Instrument Name");
@@ -55,18 +62,22 @@ public class MusicianPanel extends JPanel {
         instrumentCheckBox.setSelected(true);
         addressCheckBox.setSelected(true);
         phoneCheckBox.setSelected(true);
+        checkBoxPanel.add(ssnCheckBox);
+        checkBoxPanel.add(nameCheckBox);
+        checkBoxPanel.add(instrumentCheckBox);
+        checkBoxPanel.add(addressCheckBox);
+        checkBoxPanel.add(phoneCheckBox);
 
         searchPanel.add(Box.createRigidArea(new Dimension(5, 0)));
-        searchPanel.add(searchField);
-        searchPanel.add(Box.createRigidArea(new Dimension(5, 0)));
-        searchPanel.add(searchButton);
-        searchPanel.add(searchField);
-        searchPanel.add(searchButton);
-        searchPanel.add(ssnCheckBox);
-        searchPanel.add(nameCheckBox);
-        searchPanel.add(instrumentCheckBox);
-        searchPanel.add(addressCheckBox);
-        searchPanel.add(phoneCheckBox);
+
+        searchPanel.add(searchFieldPanel);
+        searchPanel.add(checkBoxPanel);
+
+        // searchPanel.add(ssnCheckBox);
+        // searchPanel.add(nameCheckBox);
+        // searchPanel.add(instrumentCheckBox);
+        // searchPanel.add(addressCheckBox);
+        // searchPanel.add(phoneCheckBox);
 
         // Layout
         setLayout(new BorderLayout());
