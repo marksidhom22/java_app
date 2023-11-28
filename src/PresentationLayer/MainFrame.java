@@ -41,9 +41,13 @@ public class MainFrame extends JFrame {
     public MainFrame(String userType) {
         super("Notown Musical Store");
 
-        if (userType.equals("Staff")) {
+        if (userType.contains("Staff")) {
             this.setTitle("Staff-Notown Musical Store");
+            if (userType.contains("SecurityCheck")) {
+                        this.setTitle("Staff-SecurityCheck-Notown Musical Store");
+            }
         }
+
 
 
 
@@ -54,11 +58,11 @@ public class MainFrame extends JFrame {
         setLocationRelativeTo(null); // Center on screen
 
         // Create panels
-        musicianPanel = new MusicianPanel();
-        instrumentPanel = new InstrumentPanel();
-        albumPanel = new AlbumPanel();
-        songPanel = new SongPanel();
-        musicDataPanel=new MusicDataPanel();
+        musicianPanel = new MusicianPanel(userType);
+        instrumentPanel = new InstrumentPanel(userType);
+        albumPanel = new AlbumPanel(userType);
+        songPanel = new SongPanel(userType);
+        musicDataPanel=new MusicDataPanel(userType);
 
         // Setup the menu bar
         menuBar = new JMenuBar();
@@ -160,7 +164,7 @@ public class MainFrame extends JFrame {
 
 
     private void setMenuVisibility(String userType) {
-        if (userType.equals("Staff")) {
+        if (userType.contains("Staff")) {
             // Show all menu items for staff
             musiciansItem.setVisible(true);
             instrumentsItem.setVisible(true);
@@ -169,7 +173,7 @@ public class MainFrame extends JFrame {
             musicDaItem.setVisible(true);
             logoutItem.setVisible(true);
 
-        } else if (userType.equals("Customer")) {
+        } else if (userType.contains("Customer")) {
             // Show limited menu items for customers
             musicDaItem.setVisible(false);
             logoutItem.setVisible(true);

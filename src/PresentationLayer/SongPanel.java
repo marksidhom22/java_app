@@ -38,8 +38,11 @@ public class SongPanel extends JPanel {
     private JCheckBox authorCheckBox;
     private JCheckBox titleCheckBox;
     private JCheckBox albumIdCheckBox;
-    
-    public SongPanel() {
+    private String frame_userType;
+
+    public SongPanel(String userType) {
+        this.frame_userType = userType;
+
         // Create a title label
         JLabel titleLabel = new JLabel("Song");
         titleLabel.setFont(new Font("Serif", Font.BOLD, 24)); // Example font setting
@@ -127,33 +130,48 @@ public class SongPanel extends JPanel {
         addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                addSongDialog();
+                if (checkPassword()) {
+                    addSongDialog();
+                } else {
+                    JOptionPane.showMessageDialog(null, "Incorrect Password");
+                }
             }
         });
+        
 
         editButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 int selectedRow = table.getSelectedRow();
                 if (selectedRow >= 0) {
-                    editSongDialog(selectedRow);
+                    if (checkPassword()) {
+                        editSongDialog(selectedRow);
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Incorrect Password");
+                    }
                 } else {
                     JOptionPane.showMessageDialog(null, "Please select a song to edit.");
                 }
             }
         });
+        
 
         deleteButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 int selectedRow = table.getSelectedRow();
                 if (selectedRow >= 0) {
-                    deleteSong(selectedRow);
+                    if (checkPassword()) {
+                        deleteSong(selectedRow);
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Incorrect Password");
+                    }
                 } else {
                     JOptionPane.showMessageDialog(null, "Please select a song to delete.");
                 }
             }
         });
+        
         // Add action listener for the search button
         searchButton.addActionListener(new ActionListener() {
             @Override
@@ -184,13 +202,13 @@ public class SongPanel extends JPanel {
     public void mouseClicked(MouseEvent e) {
         if (e.getClickCount() == 2) { // Check for double click
             int selectedRow = table.getSelectedRow();
-            if (selectedRow >= 0) {
-                try {
-                    editSongDialog(selectedRow); // Call your existing method to edit
-                } catch (Exception e1) {
-                    e1.printStackTrace();
+                if (selectedRow >= 0) {
+                    if (checkPassword()) {
+                        editSongDialog(selectedRow);
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Incorrect Password");
+                    }
                 }
-            }
         }
     }
 });
@@ -286,6 +304,9 @@ public class SongPanel extends JPanel {
         String title = titleObject.toString();
         String albumId = albumIdObject.toString();
         
+        
+        Song Selected_song=songService.findSongById(Integer.parseInt(id));
+        int Selected_album_id=Selected_song.getAlbumIdentifier();
 
         JTextField idField = new JTextField(id);
         idField.setEditable(false);
@@ -314,6 +335,21 @@ public class SongPanel extends JPanel {
             "Title:", titleField,
             "Album ID:", albumComboBox
         };
+
+    
+        // Find the index of the producer in the comboBox
+        int producerIndex = 0;
+        for (int i = 0; i < albumComboBox.getItemCount(); i++) {
+            if (albumComboBox.getItemAt(i).contains(Integer.toString(Selected_album_id))) {
+                producerIndex = i;
+                break;
+            }
+        }
+        // Set the selected index of the producerComboBox
+        if (producerIndex >= 0) {
+            albumComboBox.setSelectedIndex(producerIndex);
+        }
+
 
         int option = JOptionPane.showConfirmDialog(null, message, "Edit Song", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
@@ -363,10 +399,12 @@ public class SongPanel extends JPanel {
             int songId = (Integer) tableModel.getValueAt(rowIndex, 0);
             
             // Remove the song from the table model
-            tableModel.removeRow(rowIndex);
+            // tableModel.removeRow(rowIndex);
             
             // Call the business logic layer to delete the song from the backend
             songService.deleteSongById(songId);
+
+            this.loadSongs();
         }
     }
 
@@ -440,8 +478,29 @@ public class SongPanel extends JPanel {
     
         // Get the least significant bits of the UUID and convert them to an integer
         long leastSignificantBits = rawUuid.getLeastSignificantBits();
-        return (int) (leastSignificantBits & 0xffffffff);
+
+        int result =(int) (leastSignificantBits & 0xffffffff);
+        if (result<0)
+            result=result*-1; 
+       return result;
     }
     
-
+    private boolean checkPassword() {
+        if (frame_userType != null && !frame_userType.contains("SecurityCheck")) {
+            
+            return true;
+        }
+        JPasswordField passwordField = new JPasswordField();
+        Object[] message = {
+            "Enter Password:", passwordField
+        };
+    
+        int option = JOptionPane.showConfirmDialog(null, message, "Security Check", JOptionPane.OK_CANCEL_OPTION);
+        if (option == JOptionPane.OK_OPTION) {
+            String inputPassword = new String(passwordField.getPassword());
+            return "cs430@SIUC".equals(inputPassword);
+        } else {
+            return false; // User cancelled the operation
+        }
+    }
 }

@@ -15,8 +15,9 @@ public class MusicDataService {
         return musicDataDAO.getAllMusicData();
     }
 
-    public List<Object[]> searchMusicByAny(String searchQuery) {
-        // Delegates the call to the DAO
-        return musicDataDAO.searchMusicByAny(searchQuery);
+    public List<Object[]> searchMusicByAny(String searchQuery, boolean searchArtist, boolean searchAlbum, boolean searchSong) {
+        // Delegates the call to the DAO with the new parameters
+        return musicDataDAO.searchMusicByAny(searchQuery, searchArtist, searchAlbum, searchSong);
     }
+    
 }

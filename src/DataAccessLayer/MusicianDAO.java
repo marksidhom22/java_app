@@ -124,16 +124,24 @@ public class MusicianDAO {
 
             if (newaddre_phone)
             {
-                // Insert into insertplacesQuery
-                pstmt5 = conn.prepareStatement(insertplacesQuery);
-                pstmt5.setString(1, musician.getAddress());
-                pstmt5.executeUpdate();
+                try 
+                {
+                    // Insert into insertplacesQuery
+                    pstmt5 = conn.prepareStatement(insertplacesQuery);
+                    pstmt5.setString(1, musician.getAddress());
+                    pstmt5.executeUpdate();
+           
 
-                // Insert into inserttelephone_homeQuery
-                pstmt4 = conn.prepareStatement(inserttelephone_homeQuery);
-                pstmt4.setString(1, musician.getPhoneNumber());
-                pstmt4.setString(2, musician.getAddress());
-                pstmt4.executeUpdate();
+                    // Insert into inserttelephone_homeQuery
+                    pstmt4 = conn.prepareStatement(inserttelephone_homeQuery);
+                    pstmt4.setString(1, musician.getPhoneNumber());
+                    pstmt4.setString(2, musician.getAddress());
+                    pstmt4.executeUpdate();
+                }
+                catch ( Exception e)
+                {
+                    e.printStackTrace();
+                }
             }
 
 

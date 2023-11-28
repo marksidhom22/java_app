@@ -41,6 +41,7 @@ import java.util.Properties;
 
 
 public class AlbumPanel extends JPanel {
+
     private JTable table;
     private JButton addButton;
     private JButton editButton;
@@ -51,8 +52,11 @@ public class AlbumPanel extends JPanel {
     private JButton searchButton;
     private ProducerService producerService;
     private JCheckBox albumIdCheckBox, titleCheckBox, copyrightDateCheckBox, speedCheckBox, producerNameCheckBox;
+    private String frame_userType;
 
-    public AlbumPanel() {
+    public AlbumPanel(String userType) {
+            this.frame_userType = userType;
+
         // Title Label
         JLabel titleLabel = new JLabel("Album");
         titleLabel.setFont(new Font("Serif", Font.BOLD, 24));
@@ -147,40 +151,67 @@ public class AlbumPanel extends JPanel {
     public void mouseClicked(MouseEvent e) {
         if (e.getClickCount() == 2) { // Check for double click
             int selectedRow = table.getSelectedRow();
-            if (selectedRow >= 0) {
-                try {
-                    editAlbumDialog(selectedRow); // Call your existing method to edit
-                } catch (ParseException e1) {
-                    e1.printStackTrace();
-                }
-            }
-        }
-    }
-});
-
-
-
-        addButton.addActionListener(e -> addAlbumDialog());
-        editButton.addActionListener(e -> {
-            int selectedRow = table.getSelectedRow();
-            if (selectedRow >= 0) {
+        if (selectedRow >= 0) {
+            if (checkPassword()) {
                 try {
                     editAlbumDialog(selectedRow);
                 } catch (ParseException e1) {
                     e1.printStackTrace();
                 }
             } else {
-                JOptionPane.showMessageDialog(null, "Please select an album to edit.");
+                JOptionPane.showMessageDialog(null, "Incorrect Password");
             }
-        });
-        deleteButton.addActionListener(e -> {
-            int selectedRow = table.getSelectedRow();
-            if (selectedRow >= 0) {
+        }
+        }
+    }
+});
+
+
+
+addButton.addActionListener(new ActionListener() {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (checkPassword()) {
+            addAlbumDialog();
+        } else {
+            JOptionPane.showMessageDialog(null, "Incorrect Password");
+        }
+    }
+});
+editButton.addActionListener(new ActionListener() {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow >= 0) {
+            if (checkPassword()) {
+                try {
+                    editAlbumDialog(selectedRow);
+                } catch (ParseException e1) {
+                    e1.printStackTrace();
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "Incorrect Password");
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "Please select an album to edit.");
+        }
+    }
+});
+deleteButton.addActionListener(new ActionListener() {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow >= 0) {
+            if (checkPassword()) {
                 deleteAlbum(selectedRow);
             } else {
-                JOptionPane.showMessageDialog(null, "Please select an album to delete.");
+                JOptionPane.showMessageDialog(null, "Incorrect Password");
             }
-        });
+        } else {
+            JOptionPane.showMessageDialog(null, "Please select an album to delete.");
+        }
+    }
+});
         searchButton.addActionListener(e -> searchAlbums(searchField.getText().trim()));
         searchField.addActionListener(e -> searchAlbums(searchField.getText().trim()));
 
@@ -346,7 +377,7 @@ public class AlbumPanel extends JPanel {
         String speed = (String) tableModel.getValueAt(rowIndex, 3); // Assuming speed is an integer
 
         String producer_name = (String) tableModel.getValueAt(rowIndex, 4);
-    
+        Album selected_album=albumService.findAlbumById(albumId);
         // Show dialog to edit the album details
         JTextField albumIdField = new JTextField(Integer.toString(albumId));
         albumIdField.setEditable(false);
@@ -365,6 +396,19 @@ public class AlbumPanel extends JPanel {
             "Producer Name:", producerComboBox
         };
     
+        // Find the index of the producer in the comboBox
+        int producerIndex = 0;
+        for (int i = 0; i < producerComboBox.getItemCount(); i++) {
+            if (producerComboBox.getItemAt(i).contains(selected_album.getSsn())) {
+                producerIndex = i;
+                break;
+            }
+        }
+        // Set the selected index of the producerComboBox
+        if (producerIndex >= 0) {
+            producerComboBox.setSelectedIndex(producerIndex);
+        }
+
         int option = JOptionPane.showConfirmDialog(null, message, "Edit Album", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
     
@@ -515,6 +559,30 @@ public class AlbumPanel extends JPanel {
     
         // Get the least significant bits of the UUID and convert them to an integer
         long leastSignificantBits = rawUuid.getLeastSignificantBits();
-        return (int) (leastSignificantBits & 0xffffffff);
+
+        int result =(int) (leastSignificantBits & 0xffffffff);
+        if (result<0)
+            result=result*-1; 
+       return result;
     }
+
+    private boolean checkPassword() {
+        if (frame_userType != null && !frame_userType.contains("SecurityCheck")) {
+            
+            return true;
+        }
+        JPasswordField passwordField = new JPasswordField();
+        Object[] message = {
+            "Enter Password:", passwordField
+        };
+    
+        int option = JOptionPane.showConfirmDialog(null, message, "Security Check", JOptionPane.OK_CANCEL_OPTION);
+        if (option == JOptionPane.OK_OPTION) {
+            String inputPassword = new String(passwordField.getPassword());
+            return "cs430@SIUC".equals(inputPassword);
+        } else {
+            return false; // User cancelled the operation
+        }
+    }
+    
 }

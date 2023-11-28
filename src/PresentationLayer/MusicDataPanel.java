@@ -1,15 +1,9 @@
 package PresentationLayer;
 
-import java.util.UUID;
-
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-
 import BusinessLogicLayer.MusicDataService;
-import BusinessLogicLayer.MusicianService;
-import DataAccessLayer.Song;
 import java.util.List;
 
 public class MusicDataPanel extends JPanel {
@@ -22,7 +16,12 @@ public class MusicDataPanel extends JPanel {
     private JCheckBox albumCheckBox;
     private JCheckBox songCheckBox;
 
-    public MusicDataPanel() {
+    public MusicDataPanel(String userType) {
+        // Title label
+        JLabel titleLabel = new JLabel("Welcome...");
+        titleLabel.setFont(new Font("Serif", Font.BOLD, 24));
+        titleLabel.setHorizontalAlignment(JLabel.CENTER);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         this.my_MusicDataService = new MusicDataService(); // Instantiate your musician service
         searchField = new JTextField(20);
@@ -43,6 +42,7 @@ public class MusicDataPanel extends JPanel {
                 return false; // Make all cells non-editable
             }
         };
+
         // Scroll pane for table which allows it to be scrollable
         JScrollPane scrollPane = new JScrollPane(table);
         add(scrollPane, BorderLayout.CENTER);
@@ -56,40 +56,47 @@ public class MusicDataPanel extends JPanel {
         searchPanel.add(new JLabel("Search:"));
         searchPanel.add(searchField);
         searchPanel.add(searchButton);
-       // Add checkboxes to the search panel
-       searchPanel.add(artistCheckBox);
-       searchPanel.add(albumCheckBox);
-       searchPanel.add(songCheckBox);
+        searchPanel.add(artistCheckBox);
+        searchPanel.add(albumCheckBox);
+        searchPanel.add(songCheckBox);
+
         // Add the search panel to the top of the main panel
-        add(searchPanel, BorderLayout.NORTH);
+        JPanel northPanel = new JPanel(new BorderLayout());
+        northPanel.add(titleLabel, BorderLayout.NORTH);
+        northPanel.add(searchPanel, BorderLayout.SOUTH);
+        add(northPanel, BorderLayout.NORTH);
 
         loadMusicData(); // Load the initial music data
     }
 
     public void loadMusicData() {
         tableModel.setRowCount(0);
-
-        // This method would use musicianService to retrieve all music data and then populate the table
-       List<Object[]> musicData = my_MusicDataService.getAllMusicData(); // Retrieve the list of music data
-       for (Object[] row : musicData) {
-           tableModel.addRow(row); // Add the data as a new row in the table
-       }
+        List<Object[]> musicData = my_MusicDataService.getAllMusicData(); // Retrieve the list of music data
+        for (Object[] row : musicData) {
+            tableModel.addRow(row); // Add the data as a new row in the table
+        }
     }
 
     private void searchForMusic(String searchQuery) {
-        // This method should use musicianService to search for music data
         tableModel.setRowCount(0); // Clear the current table model
-       List<Object[]> searchResults = my_MusicDataService.searchMusicByAny(searchQuery);
-
     
-       if(searchResults.isEmpty())
-       {
-                   // If no instrument found, you can show a message or just leave the table empty.
-                   JOptionPane.showMessageDialog(this, "No Data found with the given search criteria.", "Search", JOptionPane.INFORMATION_MESSAGE);
-               }
-
-       for (Object[] row : searchResults) {
-           tableModel.addRow(row);
-       }
+        // Check which checkboxes are selected
+        boolean searchArtist = artistCheckBox.isSelected();
+        boolean searchAlbum = albumCheckBox.isSelected();
+        boolean searchSong = songCheckBox.isSelected();
+    
+        // Call the search method with checkbox states and search query
+        List<Object[]> searchResults = my_MusicDataService.searchMusicByAny(searchQuery, searchArtist, searchAlbum, searchSong);
+    
+        if (searchResults.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No Data found with the given search criteria.", "Search", JOptionPane.INFORMATION_MESSAGE);
+        }
+    
+        for (Object[] row : searchResults) {
+            tableModel.addRow(row);
+        }
     }
+    
+
+    // ... other methods and class members ...
 }

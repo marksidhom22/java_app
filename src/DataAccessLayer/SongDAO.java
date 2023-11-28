@@ -48,9 +48,9 @@ public class SongDAO {
     public List<Song> getAllSongs() {
         List<Song> songs = new ArrayList<>();
         final String query = "SELECT Songs_Appears.songId ,"
-        		+ "songs.author ,songs.title,Songs_Appears.albumIdentifier"
-        		+ "  FROM Songs_Appears join songs "
-        		+ "on Songs_Appears.songId =songs.songId ORDER BY songs.title ;\r\n"
+        		+ "Songs_Appears.author ,Songs_Appears.title,Songs_Appears.albumIdentifier"
+        		+ "  FROM Songs_Appears  "
+        		+ " ORDER BY Songs_Appears.title ;\r\n"
         		+ "";
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
@@ -77,40 +77,50 @@ public class SongDAO {
      * @return true if the operation was successful.
      */
     public boolean addSong(Song song) {
-    	 int affectedRows=0;
-        final String query = "INSERT INTO songs (songId, title, author) VALUES (?, ?, ?)";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(query)) {
-            
-            pstmt.setInt(1, song.getSongId());
-            pstmt.setString(2, song.getTitle());
-            pstmt.setString(3, song.getAuthor());
-
-            affectedRows = pstmt.executeUpdate();
-           
-            
+        final String insertSongQuery = "INSERT INTO Songs_Appears (songId, title, author,albumIdentifier) VALUES (?, ?, ?, ?)";
+        Connection conn = null;
+        
+        try {
+            conn = DatabaseConnection.getConnection();
+            // Disable auto-commit
+            conn.setAutoCommit(false);
+    
+            // First SQL operation
+            try (PreparedStatement pstmt = conn.prepareStatement(insertSongQuery)) {
+                pstmt.setInt(1, song.getSongId());
+                pstmt.setString(2, song.getTitle());
+                pstmt.setString(3, song.getAuthor());
+                pstmt.setInt(4, song.getAlbumIdentifier());
+                pstmt.executeUpdate();
+            }
+    
+            // Commit the transaction
+            conn.commit();
+            return true;
+    
         } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    // Rollback the transaction in case of an error
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
             e.printStackTrace();
+            return false;
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true); // Restore auto-commit mode
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
-        
-        
-        final String query2 = "INSERT INTO Songs_Appears (songId, albumIdentifier) VALUES (?, ?)";
-        try (Connection conn2 = DatabaseConnection.getConnection();
-             PreparedStatement pstmt2 = conn2.prepareStatement(query2)) {
-            
-            pstmt2.setInt(1, song.getSongId());
-            pstmt2.setInt(2, song.getAlbumIdentifier());
-
-            int affectedRows2 = pstmt2.executeUpdate();
-            return affectedRows+ affectedRows2> 0;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-            
-        
-        return false;
     }
+    
 
     /**
      * Updates an existing song's details in the database.
@@ -120,25 +130,20 @@ public class SongDAO {
      */
 
     public boolean updateSong(Song song) {
-        final String querySongs = "UPDATE songs SET title = ?, author = ? WHERE songId = ?";
-        final String querySongsAppears = "UPDATE Songs_Appears SET albumIdentifier = ? WHERE songId = ?";
+        final String querySongs = "UPDATE Songs_Appears SET title = ?, author = ?, albumIdentifier = ? WHERE songId = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmtSongs = conn.prepareStatement(querySongs);
-             PreparedStatement pstmtSongsAppears = conn.prepareStatement(querySongsAppears)) {
-
-            // Update the 'songs' table
+             PreparedStatement pstmtSongs = conn.prepareStatement(querySongs);)
+                {
+            // Update the 'Songs_Appears' table
             pstmtSongs.setString(1, song.getTitle());
             pstmtSongs.setString(2, song.getAuthor());
-            pstmtSongs.setInt(3, song.getSongId());
+            pstmtSongs.setInt(3, song.getAlbumIdentifier());
+            pstmtSongs.setInt(4, song.getSongId());
             int affectedRowsSongs = pstmtSongs.executeUpdate();
 
-            // Update the 'Songs_Appears' table
-            pstmtSongsAppears.setInt(1, song.getAlbumIdentifier());
-            pstmtSongsAppears.setInt(2, song.getSongId());
-            int affectedRowsSongsAppears = pstmtSongsAppears.executeUpdate();
 
-            return (affectedRowsSongs > 0) || (affectedRowsSongsAppears > 0);
+            return affectedRowsSongs > 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }

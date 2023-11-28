@@ -32,7 +32,11 @@ public class InstrumentPanel extends JPanel {
     private JCheckBox nameCheckBox;
     private JCheckBox keyCheckBox;
 
-    public InstrumentPanel() {
+    private String frame_userType;
+
+    public InstrumentPanel(String userType) {
+        this.frame_userType = userType;
+
         // Title Label
         JLabel titleLabel = new JLabel("Instrument");
         titleLabel.setFont(new Font("Serif", Font.BOLD, 24));
@@ -101,23 +105,55 @@ public class InstrumentPanel extends JPanel {
     }
 
     private void configureButtonActions() {
-        addButton.addActionListener(e -> addInstrumentDialog());
-        editButton.addActionListener(e -> {
-            int selectedRow = table.getSelectedRow();
-            if (selectedRow >= 0) {
-                editInstrumentDialog(selectedRow);
-            } else {
-                JOptionPane.showMessageDialog(null, "Please select an instrument to edit.");
+
+        addButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (checkPassword()) {
+                    addInstrumentDialog();
+                } else {
+                    JOptionPane.showMessageDialog(null, "Incorrect Password");
+                }
             }
         });
-        deleteButton.addActionListener(e -> {
-            int selectedRow = table.getSelectedRow();
-            if (selectedRow >= 0) {
-                deleteInstrument(selectedRow);
-            } else {
-                JOptionPane.showMessageDialog(null, "Please select an instrument to delete.");
+        
+
+
+        editButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int selectedRow = table.getSelectedRow();
+                if (selectedRow >= 0) {
+                    if (checkPassword()) {
+                        editInstrumentDialog(selectedRow);
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Incorrect Password");
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "Please select an instrument to edit.");
+                }
             }
         });
+
+        
+        deleteButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int selectedRow = table.getSelectedRow();
+                if (selectedRow >= 0) {
+                    if (checkPassword()) {
+                        deleteInstrument(selectedRow);
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Incorrect Password");
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "Please select an instrument to delete.");
+                }
+            }
+        });
+        
+        
+
         searchButton.addActionListener(e -> 
         {
         String searchQuery = searchField.getText().trim();
@@ -142,12 +178,12 @@ public class InstrumentPanel extends JPanel {
         if (e.getClickCount() == 2) { // Check for double click
             int selectedRow = table.getSelectedRow();
             if (selectedRow >= 0) {
-                try {
-                    editInstrumentDialog(selectedRow); // Call your existing method to edit
-                } catch (Exception e1) {
-                    e1.printStackTrace();
+                    if (checkPassword()) {
+                        editInstrumentDialog(selectedRow);
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Incorrect Password");
+                    }
                 }
-            }
         }
     }
 });
@@ -316,14 +352,37 @@ public class InstrumentPanel extends JPanel {
     }
     
 
-private int generateIntegerIdFromUUID() {
-    // Generate a UUID
-    UUID rawUuid = UUID.randomUUID();
+    private int generateIntegerIdFromUUID() {
+        // Generate a UUID
+        UUID rawUuid = UUID.randomUUID();
+    
+        // Get the least significant bits of the UUID and convert them to an integer
+        long leastSignificantBits = rawUuid.getLeastSignificantBits();
 
-    // Get the least significant bits of the UUID and convert them to an integer
-    long leastSignificantBits = rawUuid.getLeastSignificantBits();
-    return (int) (leastSignificantBits & 0xffffffff);
-}
+        int result =(int) (leastSignificantBits & 0xffffffff);
+        if (result<0)
+            result=result*-1; 
+       return result;
+    }
 
+    private boolean checkPassword() {
+        if (frame_userType != null && !frame_userType.contains("SecurityCheck")) {
+            
+            return true;
+        }
+        JPasswordField passwordField = new JPasswordField();
+        Object[] message = {
+            "Enter Password:", passwordField
+        };
+    
+        int option = JOptionPane.showConfirmDialog(null, message, "Security Check", JOptionPane.OK_CANCEL_OPTION);
+        if (option == JOptionPane.OK_OPTION) {
+            String inputPassword = new String(passwordField.getPassword());
+            return "cs430@SIUC".equals(inputPassword);
+        } else {
+            return false; // User cancelled the operation
+        }
+    }
+    
 
 }

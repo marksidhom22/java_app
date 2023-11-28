@@ -35,8 +35,11 @@ public class MusicianPanel extends JPanel {
 
     private JCheckBox ssnCheckBox, nameCheckBox, instrumentCheckBox, addressCheckBox, phoneCheckBox;
 
-    
-    public MusicianPanel() {
+    private String frame_userType;
+
+    public MusicianPanel(String userType) {
+        this.frame_userType = userType;
+
         // Title label
         JLabel titleLabel = new JLabel("Musician");
         titleLabel.setFont(new Font("Serif", Font.BOLD, 24));
@@ -46,7 +49,6 @@ public class MusicianPanel extends JPanel {
         // Musician and Instrument Services
         musicianService = new MusicianService();
         instrumentService = new InstrumentService();
-
         // Search Panel
         JPanel searchPanel = new JPanel();
         searchPanel.setLayout(new BoxLayout(searchPanel, BoxLayout.Y_AXIS));
@@ -130,23 +132,49 @@ public class MusicianPanel extends JPanel {
     }
 
     private void configureButtonActions() {
-        addButton.addActionListener(e -> addMusicianDialog());
-        editButton.addActionListener(e -> {
-            int selectedRow = table.getSelectedRow();
-            if (selectedRow >= 0) {
-                editMusicianDialog(selectedRow);
-            } else {
-                JOptionPane.showMessageDialog(null, "Please select a musician to edit.");
+        addButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (checkPassword()) {
+                    addMusicianDialog();
+                } else {
+                    JOptionPane.showMessageDialog(null, "Incorrect Password");
+                }
             }
         });
-        deleteButton.addActionListener(e -> {
-            int selectedRow = table.getSelectedRow();
-            if (selectedRow >= 0) {
-                deleteMusician(selectedRow);
-            } else {
-                JOptionPane.showMessageDialog(null, "Please select a musician to delete.");
+
+        editButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int selectedRow = table.getSelectedRow();
+                if (selectedRow >= 0) {
+                    if (checkPassword()) {
+                        editMusicianDialog(selectedRow);
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Incorrect Password");
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "Please select a musician to edit.");
+                }
             }
         });
+        
+        deleteButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int selectedRow = table.getSelectedRow();
+                if (selectedRow >= 0) {
+                    if (checkPassword()) {
+                        deleteMusician(selectedRow);
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Incorrect Password");
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "Please select a musician to delete.");
+                }
+            }
+        });
+
         searchButton.addActionListener(e -> searchMusicians(searchField.getText().trim()));
         searchField.addActionListener(e -> searchMusicians(searchField.getText().trim()));
 
@@ -155,13 +183,13 @@ public class MusicianPanel extends JPanel {
     public void mouseClicked(MouseEvent e) {
         if (e.getClickCount() == 2) { // Check for double click
             int selectedRow = table.getSelectedRow();
-            if (selectedRow >= 0) {
-                try {
-                    editMusicianDialog(selectedRow); // Call your existing method to edit
-                } catch (Exception e1) {
-                    e1.printStackTrace();
-                }
-            }
+                if (selectedRow >= 0) {
+                    if (checkPassword()) {
+                        editMusicianDialog(selectedRow);
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Incorrect Password");
+                    }
+                } 
         }
     }
 });
@@ -389,5 +417,26 @@ public class MusicianPanel extends JPanel {
     }
 
 
-    // Other methods and class members...
+    private boolean checkPassword() {
+        if (frame_userType != null && !frame_userType.contains("SecurityCheck")) {
+            
+            return true;
+        }
+        JPasswordField passwordField = new JPasswordField();
+        Object[] message = {
+            "Enter Password:", passwordField
+        };
+    
+        int option = JOptionPane.showConfirmDialog(null, message, "Security Check", JOptionPane.OK_CANCEL_OPTION);
+        if (option == JOptionPane.OK_OPTION) {
+            String inputPassword = new String(passwordField.getPassword());
+            return "cs430@SIUC".equals(inputPassword);
+        } else {
+            return false; // User cancelled the operation
+        }
+    }
+    
+
+
+
 }
